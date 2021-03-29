@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pepinos/pages/clientes_page.dart';
-import 'package:pepinos/pages/ventas_page.dart';
+import 'package:pepinos/src/pages/clientes_page.dart';
+import 'package:pepinos/src/pages/ventas_page.dart';
 
 /// This is the stateful widget that the main application instantiates.
 class HomePage extends StatefulWidget {
