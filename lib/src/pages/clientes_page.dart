@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pepinos/src/models/cliente_model.dart';
 import 'package:pepinos/src/providers/clientes_providers.dart';
+import 'package:pepinos/src/widgets/drawer_menu.dart';
 
 class ClientesPage extends StatelessWidget {
   final ClienteProvider _clientProvider = new ClienteProvider();
@@ -15,6 +16,7 @@ class ClientesPage extends StatelessWidget {
         ],
       ),
       body: _createFutureBuilderClient(),
+      drawer: DrawerMenu(),
     );
   }
 
@@ -30,12 +32,18 @@ class ClientesPage extends StatelessWidget {
   }
 
   Widget _createListClient(List<Cliente> clientes) {
-    return ListView.builder(
-      itemCount: clientes.length,
-      itemBuilder: (BuildContext context, int index) {
-        return _createItem(context, clientes[index]);
-      },
-    );
+    return clientes.length > 0
+        ? ListView.builder(
+            itemCount: clientes.length,
+            itemBuilder: (BuildContext context, int index) {
+              return _createItem(context, clientes[index]);
+            },
+          )
+        : Center(
+            child: Text(
+            'No hay resultados para clientes.',
+            style: TextStyle(fontSize: 20),
+          ));
   }
 
   Widget _createItem(BuildContext context, Cliente cliente) {
@@ -57,6 +65,6 @@ class ClientesPage extends StatelessWidget {
 }
 
 void _goClient(BuildContext context, String idCliente) {
-  Navigator.pushNamed(context, 'cliente',
+  Navigator.pushNamed(context, 'clientes/formulario',
       arguments: idCliente == null || idCliente.isEmpty ? null : idCliente);
 }

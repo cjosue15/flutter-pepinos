@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pepinos/src/widgets/drawer_menu.dart';
 
 class VentasPage extends StatefulWidget {
   @override
@@ -23,6 +24,7 @@ class _VentasPageState extends State<VentasPage> {
       appBar: AppBar(
         title: Text('Ventas'),
       ),
+      drawer: DrawerMenu(),
     );
   }
 }
