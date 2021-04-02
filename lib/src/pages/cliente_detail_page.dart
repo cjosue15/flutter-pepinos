@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pepinos/src/models/cliente_model.dart';
 import 'package:pepinos/src/providers/clientes_providers.dart';
-import 'package:pepinos/src/utils/utils.validatos.dart' as validators;
+import 'package:pepinos/src/utils/utils_validatos.dart' as validators;
 import 'package:pepinos/src/widgets/alert_dialog.dart';
 import 'package:pepinos/src/widgets/dropdown.dart';
 
