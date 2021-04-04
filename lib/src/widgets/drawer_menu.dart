@@ -66,7 +66,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
                   onTap: () {
                     if (_currentRoute == _listViewData[index].navigateTo)
                       return;
-                    Navigator.pushNamed(
+                    Navigator.pushReplacementNamed(
                         context, _listViewData[index].navigateTo);
                   }),
             );
