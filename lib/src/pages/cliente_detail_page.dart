@@ -3,7 +3,6 @@ import 'package:pepinos/src/models/cliente_model.dart';
 import 'package:pepinos/src/providers/clientes_providers.dart';
 import 'package:pepinos/src/utils/utils_validatos.dart' as validators;
 import 'package:pepinos/src/widgets/alert_dialog.dart';
-import 'package:pepinos/src/widgets/dropdown.dart';
 
 class ClienteDetailPage extends StatefulWidget {
   @override
@@ -15,16 +14,6 @@ class _ClienteDetailPageState extends State<ClienteDetailPage> {
   Cliente cliente = new Cliente();
   final ClienteProvider _clienteProvider = new ClienteProvider();
   final CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
-  // final _currencies = [
-  //   "Food",
-  //   "Transport",
-  //   "Personal",
-  //   "Shopping",
-  //   "Medical",
-  //   "Rent",
-  //   "Movie",
-  //   "Salary"
-  // ];
   bool _isSaving = false;
   String _idCliente;
   // fielfds
@@ -109,21 +98,6 @@ class _ClienteDetailPageState extends State<ClienteDetailPage> {
             value: value, length: 1, message: 'Ingrese un apellido'));
   }
 
-  // Widget _createLugar() {
-  //   return AppDropdownInput(
-  //     hintText: "Lugar",
-  //     options: _currencies,
-  //     value: cliente.lugar,
-  //     onChanged: (String value) {
-  //       print(value);
-  //       setState(() {
-  //         cliente.lugar = value;
-  //       });
-  //     },
-  //     getLabel: (String value) => value,
-  //     validator: (value) => value == null ? 'Ingrese un Lugar' : null,
-  //   );
-  // }
   Widget _createLugar() {
     return TextFormField(
       controller: _lugarController,
@@ -175,7 +149,10 @@ class _ClienteDetailPageState extends State<ClienteDetailPage> {
           title: 'Registro exitoso',
           description: response,
           text: 'Aceptar',
-          backFunction: () => Navigator.pop(context));
+          backFunction: () {
+            Navigator.pop(context);
+            Navigator.pushReplacementNamed(context, 'clientes');
+          });
       setState(() {
         _isSaving = false;
       });
@@ -185,11 +162,7 @@ class _ClienteDetailPageState extends State<ClienteDetailPage> {
         title: 'Ops!',
         description: 'Ocurrio un error.',
         text: 'Aceptar',
-        // backFunction: () => Navigator.pop(context)
       );
-      setState(() {
-        _isSaving = false;
-      });
       setState(() {
         _isSaving = false;
       });
