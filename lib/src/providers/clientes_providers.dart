@@ -1,66 +1,68 @@
-import 'dart:convert';
+import 'dart:async';
 import 'dart:io';
-
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:pepinos/src/models/cliente_model.dart';
 
 class ClienteProvider {
-  final String url = '192.168.1.24:8080';
+  final String url = 'http://192.168.1.24:8080';
+  Dio dio = new Dio();
+  CancelToken token = CancelToken();
 
   Future<dynamic> createProduct(Cliente cliente) async {
     try {
-      final response = await http.post(Uri.http(url, '/api/clientes'),
-          body: clienteToJson(cliente),
-          headers: {
-            HttpHeaders.contentTypeHeader: 'application/json',
-          });
-      final decodedData = json.decode(response.body);
+      final response = await dio.post(
+        '$url/api/clientes',
+        cancelToken: token,
+        data: clienteToJson(cliente),
+        options: Options(headers: {
+          HttpHeaders.contentTypeHeader: 'application/json',
+        }),
+      );
+      final decodedData = response.data;
       return decodedData['msg'];
     } catch (e) {
-      return throw (e);
+      return e;
     }
   }
 
   Future<List<Cliente>> getClients() async {
     try {
-      final response = await http.get(
-        Uri.http(url, '/api/clientes'),
-      );
-
-      final decodedData = json.decode(response.body);
+      var response = await dio.get('$url/api/clientes', cancelToken: token);
+      final dynamic decodedData = response.data;
       if (decodedData == null || decodedData['clientes'] == null) return [];
       final data = new Clientes.fromJsonList(decodedData['clientes']);
       return data.clientes;
     } catch (e) {
-      return throw (e);
+      return e;
     }
   }
 
   Future<Cliente> getClient(String idCliente) async {
     try {
-      final response = await http.get(
-        Uri.http(url, '/api/clientes/$idCliente'),
-      );
-      Map<String, dynamic> decodedData = json.decode(response.body);
+      final response =
+          await dio.get('$url/api/clientes/$idCliente', cancelToken: token);
+      Map<String, dynamic> decodedData = response.data;
       final Cliente cliente = Cliente.fromJson(decodedData);
       return cliente;
     } catch (e) {
-      return throw (e);
+      return e;
     }
   }
 
   Future<dynamic> updateClient(Cliente cliente) async {
     try {
-      final response = await http.put(
-          Uri.http(url, '/api/clientes/${cliente.idCliente}'),
-          body: clienteToJson(cliente),
-          headers: {
-            HttpHeaders.contentTypeHeader: 'application/json',
-          });
-      final decodedData = json.decode(response.body);
+      final response = await dio.put(
+        '$url/api/clientes/${cliente.idCliente}',
+        cancelToken: token,
+        data: clienteToJson(cliente),
+        options: Options(headers: {
+          HttpHeaders.contentTypeHeader: 'application/json',
+        }),
+      );
+      final decodedData = response.data;
       return decodedData['msg'];
     } catch (e) {
-      return throw (e);
+      return e;
     }
   }
 }
