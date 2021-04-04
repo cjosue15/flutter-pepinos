@@ -1,10 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:pepinos/src/models/cliente_model.dart';
 import 'package:pepinos/src/providers/clientes_providers.dart';
+import 'package:pepinos/src/widgets/alert_dialog.dart';
 import 'package:pepinos/src/widgets/drawer_menu.dart';
 
-class ClientesPage extends StatelessWidget {
+class ClientesPage extends StatefulWidget {
+  @override
+  _ClientesPageState createState() => _ClientesPageState();
+}
+
+class _ClientesPageState extends State<ClientesPage> {
   final ClienteProvider _clientProvider = new ClienteProvider();
+
+  final CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _clientProvider.token.cancel();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -15,18 +34,20 @@ class ClientesPage extends StatelessWidget {
               icon: Icon(Icons.add), onPressed: () => _goClient(context, null))
         ],
       ),
-      body: _createFutureBuilderClient(),
+      body: _createFutureBuilderClient(context),
       drawer: DrawerMenu(),
     );
   }
 
-  Widget _createFutureBuilderClient() {
+  Widget _createFutureBuilderClient(BuildContext context) {
     return FutureBuilder(
       future: _clientProvider.getClients(),
       builder: (BuildContext context, AsyncSnapshot<List<Cliente>> snapshot) {
         return snapshot.hasData
             ? _createListClient(snapshot.data)
-            : Center(child: CircularProgressIndicator());
+            : snapshot.hasError
+                ? showError(context)
+                : Center(child: CircularProgressIndicator());
       },
     );
   }
@@ -62,9 +83,18 @@ class ClientesPage extends StatelessWidget {
       ),
     );
   }
+
+  showError(BuildContext context) {
+    Future.delayed(
+        Duration.zero,
+        () => _customAlertDialog.errorAlert(
+              context: context,
+            ));
+    return Container();
+  }
 }
 
 void _goClient(BuildContext context, String idCliente) {
-  Navigator.pushNamed(context, 'clientes/formulario',
+  Navigator.pushNamed(context, 'clientes/form',
       arguments: idCliente == null || idCliente.isEmpty ? null : idCliente);
 }
