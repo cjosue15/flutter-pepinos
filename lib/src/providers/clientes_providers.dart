@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:pepinos/src/models/cliente_model.dart';
 
 class ClienteProvider {
-  final String url = 'http://192.168.1.24:8080';
+  final String url = 'http://18.219.8.85';
   Dio dio = new Dio();
   CancelToken token = CancelToken();
 
@@ -29,8 +29,8 @@ class ClienteProvider {
     try {
       var response = await dio.get('$url/api/clientes', cancelToken: token);
       final dynamic decodedData = response.data;
-      if (decodedData == null || decodedData['clientes'] == null) return [];
-      final data = new Clientes.fromJsonList(decodedData['clientes']);
+      if (decodedData == null) return [];
+      final data = new Clientes.fromJsonList(decodedData);
       return data.clientes;
     } catch (e) {
       return e;
