@@ -23,8 +23,18 @@ class _VentasPageState extends State<VentasPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Ventas'),
+        actions: <Widget>[
+          IconButton(
+              icon: Icon(Icons.add), onPressed: () => _goVenta(context, null))
+        ],
       ),
       drawer: DrawerMenu(),
     );
+  }
+
+  void _goVenta(BuildContext context, param1) {
+    // Navigator.pushNamed(context, 'clientes/formulario',
+    //   arguments: idCliente == null || idCliente.isEmpty ? null : idCliente);
+    Navigator.pushNamed(context, 'ventas/form');
   }
 }
