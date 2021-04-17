@@ -8,7 +8,7 @@ class ClienteProvider {
   Dio dio = new Dio();
   CancelToken token = CancelToken();
 
-  Future<dynamic> createProduct(Cliente cliente) async {
+  Future<dynamic> createClient(Cliente cliente) async {
     try {
       final response = await dio.post(
         '$url/api/clientes',
@@ -19,7 +19,7 @@ class ClienteProvider {
         }),
       );
       final decodedData = response.data;
-      return decodedData['msg'];
+      return decodedData['message'];
     } catch (e) {
       return e;
     }
@@ -45,6 +45,7 @@ class ClienteProvider {
       final Cliente cliente = Cliente.fromJson(decodedData);
       return cliente;
     } catch (e) {
+      print(e);
       return e;
     }
   }
@@ -60,7 +61,7 @@ class ClienteProvider {
         }),
       );
       final decodedData = response.data;
-      return decodedData['msg'];
+      return decodedData['message'];
     } catch (e) {
       return e;
     }

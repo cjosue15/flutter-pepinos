@@ -142,7 +142,7 @@ class _ClienteDetailPageState extends State<ClienteDetailPage> {
         // editar
         response = await _clienteProvider.updateClient(cliente);
       } else {
-        response = await _clienteProvider.createProduct(cliente);
+        response = await _clienteProvider.createClient(cliente);
       }
       _customAlertDialog.confirmAlert(
           context: context,
