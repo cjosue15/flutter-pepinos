@@ -2,16 +2,16 @@ import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:pepinos/src/models/cliente_model.dart';
+import 'package:pepinos/src/utils/api.dart';
 
 class ClienteProvider {
-  final String url = 'http://18.219.8.85';
   Dio dio = new Dio();
   CancelToken token = CancelToken();
 
   Future<dynamic> createClient(Cliente cliente) async {
     try {
       final response = await dio.post(
-        '$url/api/clientes',
+        '$apiUrl/api/clientes',
         cancelToken: token,
         data: clienteToJson(cliente),
         options: Options(headers: {
@@ -27,7 +27,7 @@ class ClienteProvider {
 
   Future<List<Cliente>> getClients() async {
     try {
-      var response = await dio.get('$url/api/clientes', cancelToken: token);
+      var response = await dio.get('$apiUrl/api/clientes', cancelToken: token);
       final dynamic decodedData = response.data;
       if (decodedData == null) return [];
       final data = new Clientes.fromJsonList(decodedData);
@@ -40,7 +40,7 @@ class ClienteProvider {
   Future<Cliente> getClient(String idCliente) async {
     try {
       final response =
-          await dio.get('$url/api/clientes/$idCliente', cancelToken: token);
+          await dio.get('$apiUrl/api/clientes/$idCliente', cancelToken: token);
       Map<String, dynamic> decodedData = response.data;
       final Cliente cliente = Cliente.fromJson(decodedData);
       return cliente;
@@ -53,7 +53,7 @@ class ClienteProvider {
   Future<dynamic> updateClient(Cliente cliente) async {
     try {
       final response = await dio.put(
-        '$url/api/clientes/${cliente.idCliente}',
+        '$apiUrl/api/clientes/${cliente.idCliente}',
         cancelToken: token,
         data: clienteToJson(cliente),
         options: Options(headers: {
