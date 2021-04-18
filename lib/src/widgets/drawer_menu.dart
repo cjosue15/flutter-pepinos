@@ -26,6 +26,10 @@ class _DrawerMenuState extends State<DrawerMenu> {
     DrawerItem(
         title: 'Clientes', icon: Icon(Icons.person), navigateTo: 'clientes'),
     DrawerItem(
+        title: 'Productos',
+        icon: Icon(Icons.inventory),
+        navigateTo: 'productos'),
+    DrawerItem(
         title: 'Invernaderos',
         icon: Icon(Icons.place),
         navigateTo: 'invernaderos')
