@@ -14,6 +14,12 @@ class _ProductosListPageState extends State<ProductosListPage> {
   final CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
 
   @override
+  void dispose() {
+    super.dispose();
+    _productosProvider.token.cancel();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(

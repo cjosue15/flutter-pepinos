@@ -38,6 +38,14 @@ class _ProductsFormPageState extends State<ProductsFormPage> {
   }
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    _descripcionController.dispose();
+    _productosProvider.token.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
