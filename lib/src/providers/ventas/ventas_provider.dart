@@ -124,14 +124,6 @@ class VentasProvider {
       final response = await dio.get('$apiUrl/api/ventas',
           cancelToken: token, queryParameters: {'pagina': pagina, 'filas': 10});
       final dynamic decodedData = response.data;
-      // print('decoded' + decodedData);
-      if (decodedData == null ||
-          decodedData.length == 0 ||
-          decodedData["data"] == null) {
-        ventasSink([]);
-        return {'ventas': [], 'paginacion': {}};
-      }
-      ;
       final ventas = new Venta.fromJsonList(jsonList: decodedData["data"]);
       final paginacion = new Paginacion.fromJson(decodedData["paginacion"]);
       _ventas.addAll(ventas.items);
