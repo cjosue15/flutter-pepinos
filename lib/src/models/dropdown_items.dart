@@ -1,23 +1,44 @@
+// class DropdownItem {
+//   int id;
+//   String text;
+//   List<DropdownItem> items = [];
+
+//   DropdownItem({this.id, this.text});
+
+//   factory DropdownItem.fromJsonMap(
+//           {Map<String, dynamic> json, String idValue, String textValue}) =>
+//       DropdownItem(id: json[idValue], text: json[textValue]);
+
+//   DropdownItem.fromJsonList(
+//       {List<dynamic> jsonList, String idValue, String textValue}) {
+//     if (jsonList == null) return;
+
+//     for (final item in jsonList) {
+//       this.items.add(new DropdownItem.fromJsonMap(
+//           json: item, idValue: idValue, textValue: textValue));
+//     }
+//   }
+//
 class DropdownItem {
-  String id;
+  int id;
   String text;
   List<DropdownItem> items = [];
 
   DropdownItem({this.id, this.text});
 
   factory DropdownItem.fromJsonMap(
-          {Map<String, dynamic> json, String idValue, String textValue}) =>
-      DropdownItem(id: json[idValue].toString(), text: json[textValue]);
+          {Map<String, dynamic> json, int idValue, String textValue}) =>
+      DropdownItem(id: idValue, text: textValue);
 
-  DropdownItem.fromJsonList(
-      {List<dynamic> jsonList, String idValue, String textValue}) {
-    if (jsonList == null) return;
+  // DropdownItem.fromJsonList(
+  //     {List<dynamic> jsonList, String idValue, String textValue}) {
+  //   if (jsonList == null) return;
 
-    for (final item in jsonList) {
-      this.items.add(new DropdownItem.fromJsonMap(
-          json: item, idValue: idValue, textValue: textValue));
-    }
-  }
+  //   for (final item in jsonList) {
+  //     this.items.add(new DropdownItem.fromJsonMap(
+  //         json: item, idValue: idValue, textValue: textValue));
+  //   }
+  // }
 
   // Map<String, dynamic> toJson() => {
   //       // "id_cliente": idCliente,
