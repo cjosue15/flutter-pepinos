@@ -1,18 +1,5 @@
 import 'dart:convert';
 
-class Clientes {
-  List<Cliente> clientes = [];
-  Clientes();
-
-  Clientes.fromJsonList(List<dynamic> jsonList) {
-    if (jsonList == null) return;
-
-    for (final item in jsonList) {
-      this.clientes.add(new Cliente.fromJson(item));
-    }
-  }
-}
-
 Cliente clienteFromJson(String str) => Cliente.fromJson(json.decode(str));
 
 String clienteToJson(Cliente data) => json.encode(data.toJson());
@@ -32,6 +19,15 @@ class Cliente {
   String lugar;
   String puesto;
   int idEstado;
+  List<Cliente> items = [];
+
+  Cliente.fromJsonList({List<dynamic> jsonList}) {
+    if (jsonList == null) return;
+
+    for (final item in jsonList) {
+      this.items.add(new Cliente.fromJson(item));
+    }
+  }
 
   factory Cliente.fromJson(Map<String, dynamic> json) => Cliente(
       idCliente: json["id_cliente"],
