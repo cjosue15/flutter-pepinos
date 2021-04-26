@@ -4,12 +4,12 @@ import 'package:pepinos/src/providers/clientes_providers.dart';
 import 'package:pepinos/src/utils/utils_validatos.dart' as validators;
 import 'package:pepinos/src/widgets/alert_dialog.dart';
 
-class ClienteDetailPage extends StatefulWidget {
+class ClienteFormPage extends StatefulWidget {
   @override
-  _ClienteDetailPageState createState() => _ClienteDetailPageState();
+  _ClienteFormPageState createState() => _ClienteFormPageState();
 }
 
-class _ClienteDetailPageState extends State<ClienteDetailPage> {
+class _ClienteFormPageState extends State<ClienteFormPage> {
   final formKey = GlobalKey<FormState>();
   Cliente cliente = new Cliente();
   final ClienteProvider _clienteProvider = new ClienteProvider();
