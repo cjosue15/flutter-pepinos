@@ -8,6 +8,8 @@ class Constants {
 }
 
 class CustomAlertDialog {
+  static CustomAlertDialog _alertDialog;
+
   confirmAlert(
       {BuildContext context,
       Function backFunction,
@@ -60,6 +62,15 @@ class CustomAlertDialog {
                 alertType: 'error'),
           );
         });
+  }
+
+  Widget showErrorInBuilders(BuildContext context) {
+    Future.delayed(
+        Duration.zero,
+        () => errorAlert(
+              context: context,
+            ));
+    return Container();
   }
 
   Widget contentBox(
