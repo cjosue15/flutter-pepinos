@@ -1,42 +1,35 @@
-import 'dart:convert';
-
-VentasDetalle ventasDetalleFromJson(String str) =>
-    VentasDetalle.fromJson(json.decode(str));
-
-String ventasDetalleToJson(VentasDetalle data) => json.encode(data.toJson());
-
-class VentasDetalle {
-  VentasDetalle({
-    this.idVentaDetalle,
-    this.idVentaCabecera,
+class VentaDetalle {
+  VentaDetalle({
+    this.idItem,
     this.idUnidadMedida,
     this.cantidad,
     this.precioUnitario,
+    this.idInvernadero,
     this.idProducto,
   });
 
-  int idVentaDetalle;
-  int idVentaCabecera;
+  int idItem;
   int idUnidadMedida;
   int cantidad;
   double precioUnitario;
+  int idInvernadero;
   int idProducto;
 
-  factory VentasDetalle.fromJson(Map<String, dynamic> json) => VentasDetalle(
-        idVentaDetalle: json["id_venta_detalle"],
-        idVentaCabecera: json["id_venta_cabecera"],
+  factory VentaDetalle.fromJson(Map<String, dynamic> json) => VentaDetalle(
+        idItem: json["id_item"],
         idUnidadMedida: json["id_unidad_medida"],
         cantidad: json["cantidad"],
         precioUnitario: json["precio_unitario"].toDouble(),
+        idInvernadero: json["id_invernadero"],
         idProducto: json["id_producto"],
       );
 
   Map<String, dynamic> toJson() => {
-        "id_venta_detalle": idVentaDetalle,
-        "id_venta_cabecera": idVentaCabecera,
+        "id_item": idItem,
         "id_unidad_medida": idUnidadMedida,
         "cantidad": cantidad,
         "precio_unitario": precioUnitario,
+        "id_invernadero": idInvernadero,
         "id_producto": idProducto,
       };
 }

@@ -1,42 +1,46 @@
+// To parse this JSON data, do
+//
+//     final ventaCabecera = ventaCabeceraFromJson(jsonString);
+
 import 'dart:convert';
 
-VentasCabecera ventasCabeceraFromJson(String str) =>
-    VentasCabecera.fromJson(json.decode(str));
+import 'package:pepinos/src/models/venta_detalle_model.dart';
 
-String ventasCabeceraToJson(VentasCabecera data) => json.encode(data.toJson());
+VentaCabecera ventaCabeceraFromJson(String str) =>
+    VentaCabecera.fromJson(json.decode(str));
 
-class VentasCabecera {
-  VentasCabecera({
-    this.idVentaCabecera,
-    this.idInvernadero,
+String ventaCabeceraToJson(VentaCabecera data) => json.encode(data.toJson());
+
+class VentaCabecera {
+  VentaCabecera({
     this.idCliente,
     this.montoTotal,
-    this.idEstado,
     this.montoPagado,
+    this.idEstado,
+    this.ventaDetalle,
   });
 
-  int idVentaCabecera;
-  int idInvernadero;
   int idCliente;
   double montoTotal;
-  int idEstado;
   double montoPagado;
+  int idEstado;
+  List<VentaDetalle> ventaDetalle;
 
-  factory VentasCabecera.fromJson(Map<String, dynamic> json) => VentasCabecera(
-        idVentaCabecera: json["id_venta_cabecera"],
-        idInvernadero: json["id_invernadero"],
+  factory VentaCabecera.fromJson(Map<String, dynamic> json) => VentaCabecera(
         idCliente: json["id_cliente"],
         montoTotal: json["monto_total"].toDouble(),
-        idEstado: json["id_estado"],
         montoPagado: json["monto_pagado"].toDouble(),
+        idEstado: json["id_estado"],
+        ventaDetalle: List<VentaDetalle>.from(
+            json["venta_detalle"].map((x) => VentaDetalle.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
-        "id_venta_cabecera": idVentaCabecera,
-        "id_invernadero": idInvernadero,
         "id_cliente": idCliente,
         "monto_total": montoTotal,
-        "id_estado": idEstado,
         "monto_pagado": montoPagado,
+        "id_estado": idEstado,
+        "venta_detalle":
+            List<dynamic>.from(ventaDetalle.map((x) => x.toJson())),
       };
 }
