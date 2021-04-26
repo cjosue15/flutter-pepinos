@@ -26,13 +26,11 @@ class _VentasPageState extends State<VentasPage> {
     _scrollController.addListener(_handleController);
 
     _ventasProvider.getVentas(pagina: _nextPage).then((response) {
-      print(response);
       setState(() {
         _paginacion = response['paginacion'];
       });
     }).catchError((error) {
       _ventasProvider.disposeStream();
-      print(error);
     });
   }
 
@@ -80,12 +78,17 @@ class _VentasPageState extends State<VentasPage> {
   }
 
   Widget _createListVenta(List<Venta> ventas) {
-    print(ventas);
-    return ListView.builder(
-        controller: _scrollController,
-        itemCount: ventas.length,
-        itemBuilder: (BuildContext context, int index) =>
-            _createItem(ventas[index]));
+    return ventas.length > 0
+        ? ListView.builder(
+            controller: _scrollController,
+            itemCount: ventas.length,
+            itemBuilder: (BuildContext context, int index) =>
+                _createItem(ventas[index]))
+        : Center(
+            child: Text(
+            'No hay resultados para ventas.',
+            style: TextStyle(fontSize: 20),
+          ));
   }
 
   Widget _createItem(Venta venta) {
