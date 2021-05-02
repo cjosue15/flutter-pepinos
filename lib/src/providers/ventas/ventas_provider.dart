@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:pepinos/src/models/dropdown_items.dart';
 import 'package:pepinos/src/models/paginacion_model.dart';
-import 'package:pepinos/src/models/venta_cabecera_model.dart';
 import 'package:pepinos/src/models/venta_model.dart';
 import 'package:pepinos/src/utils/api.dart';
 
@@ -11,6 +10,9 @@ class VentasProvider {
   Dio dio = new Dio();
   CancelToken token = CancelToken();
   List<Venta> _ventas = [];
+  final Options _options = Options(headers: {
+    HttpHeaders.contentTypeHeader: 'application/json',
+  });
 
   final _ventasStreamController = new StreamController<List<Venta>>();
 
@@ -24,94 +26,37 @@ class VentasProvider {
     _ventasStreamController?.close();
   }
 
-  Future<List<DropdownItem>> getClientsCombo() async {
-    List<DropdownItem> items = [];
-    try {
-      final response =
-          await dio.get('$apiUrl/api/clientes/combo', cancelToken: token);
-      final dynamic decodedData = response.data;
-      if (decodedData == null) return [];
-      for (final item in decodedData) {
-        items.add(new DropdownItem.fromJsonMap(
-            json: item,
-            idValue: item['id_cliente'],
-            textValue: item['nombres'] + ' ' + item['apellidos']));
-      }
-      return items;
-    } catch (e) {
-      return e;
-    }
-  }
-
-  Future<List<DropdownItem>> getInvernaderosCombo() async {
-    List<DropdownItem> items = [];
-    try {
-      final response =
-          await dio.get('$apiUrl/api/invernaderos/combo', cancelToken: token);
-      final dynamic decodedData = response.data;
-      if (decodedData == null) return [];
-      for (final item in decodedData) {
-        items.add(new DropdownItem.fromJsonMap(
-            json: item,
-            idValue: item['id_invernadero'],
-            textValue: item['nombre_invernadero']));
-      }
-      return items;
-    } catch (e) {
-      return e;
-    }
-  }
-
-  Future<List<DropdownItem>> getUnidadMedidasCombo() async {
-    List<DropdownItem> items = [];
-    try {
-      final response =
-          await dio.get('$apiUrl/api/tablageneral/2', cancelToken: token);
-      final dynamic decodedData = response.data;
-      if (decodedData == null) return [];
-      for (final item in decodedData) {
-        items.add(new DropdownItem.fromJsonMap(
-            json: item,
-            idValue: item['id_tabla_general'],
-            textValue: item['descripcion']));
-      }
-      return items;
-    } catch (e) {
-      return e;
-    }
-  }
-
-  Future<List<DropdownItem>> getProductosByInvernaderoCombo(
-      int idInvernadero) async {
-    List<DropdownItem> items = [];
-    try {
-      final response = await dio.get(
-          '$apiUrl/api/productos/invernadero/$idInvernadero',
-          cancelToken: token);
-      final dynamic decodedData = response.data;
-      if (decodedData == null) return [];
-      for (final item in decodedData) {
-        items.add(new DropdownItem.fromJsonMap(
-            json: item,
-            idValue: item['id_producto'],
-            textValue: item['nombre_producto']));
-      }
-      return items;
-    } catch (e) {
-      return e;
-    }
-  }
-
-  Future<dynamic> createVenta(VentaCabecera ventaCabecera) async {
+  Future<dynamic> createVenta(Venta venta) async {
     try {
       final response = await dio.post(
         '$apiUrl/api/ventas',
         cancelToken: token,
-        data: ventaCabeceraToJson(ventaCabecera),
-        options: Options(headers: {
-          HttpHeaders.contentTypeHeader: 'application/json',
-        }),
+        data: ventaToJson(venta),
+        options: _options,
       );
+      final decodedData = response.data;
+      return decodedData['message'];
+    } catch (e) {
+      return e;
+    }
+  }
+
+  Future<Venta> getOneVenta({String idVenta}) async {
+    try {
+      final response =
+          await dio.get('$apiUrl/api/ventas/$idVenta', cancelToken: token);
+      final dynamic decodedData = response.data;
+      final venta = new Venta.fromJson(decodedData['venta']);
+      return venta;
+    } catch (e) {
+      return e;
+    }
+  }
+
+  Future<String> updatePago({VentaPago pago, String numeroComprobante}) async {
+    try {
+      final response = await dio.put('$apiUrl/api/ventas/$numeroComprobante',
+          cancelToken: token, data: ventaPagoToJson(pago), options: _options);
       final decodedData = response.data;
       return decodedData['message'];
     } catch (e) {
