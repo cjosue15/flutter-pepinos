@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:pepinos/src/enums/estado_enum.dart';
-import 'package:pepinos/src/models/venta_cabecera_model.dart';
 import 'package:pepinos/src/models/dropdown_items.dart';
-import 'package:pepinos/src/models/venta_detalle_model.dart';
+import 'package:pepinos/src/models/venta_model.dart';
+import 'package:pepinos/src/providers/dropdowns_provider.dart';
 import 'package:pepinos/src/providers/ventas/ventas_provider.dart';
 import 'package:pepinos/src/utils/constants.dart';
 import 'package:pepinos/src/widgets/alert_dialog.dart';
+import 'package:pepinos/src/widgets/date_picker_form.dart';
 import 'package:pepinos/src/widgets/dropdown.dart';
 import 'package:pepinos/src/utils/utils_validatos.dart' as validators;
 import 'package:flutter_masked_text/flutter_masked_text.dart';
@@ -17,7 +18,9 @@ class VentasForm extends StatefulWidget {
 
 class _VentasFormState extends State<VentasForm> {
   VentasProvider _ventasProvider = new VentasProvider();
-  VentaCabecera _ventaCabecera = new VentaCabecera();
+  DropdownProvider _dropdownProvider = new DropdownProvider();
+
+  Venta _venta = new Venta();
   VentaDetalle _ventaDetalle = new VentaDetalle();
   final CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
   final _formKey = GlobalKey<FormState>();
@@ -25,10 +28,12 @@ class _VentasFormState extends State<VentasForm> {
   List<DropdownItem> _invernaderos = [];
   List<DropdownItem> _unidadDeMedidas = [];
   List<DropdownItem> _productos = [];
+  List<DropdownItem> _campanias = [];
   DropdownItem selectedClient;
   DropdownItem selectedInvernadero;
   DropdownItem selectedProducto;
   DropdownItem selectedUnidadMedida;
+  DropdownItem selectedCampania;
   bool _isSaving = false;
   String _idVenta;
   String prevPrecio = '';
@@ -52,14 +57,15 @@ class _VentasFormState extends State<VentasForm> {
   void initState() {
     super.initState();
     Future.delayed(Duration.zero).then((_) async {
-      final clientes = await _ventasProvider.getClientsCombo();
-      final invernaderos = await _ventasProvider.getInvernaderosCombo();
-      final unidadDeMedidas = await _ventasProvider.getUnidadMedidasCombo();
+      final clientes = await _dropdownProvider.getClientsCombo();
+      final invernaderos = await _dropdownProvider.getInvernaderosCombo();
+      final unidadDeMedidas = await _dropdownProvider.getUnidadMedidasCombo();
+      _campanias = await _dropdownProvider.getCampaniasCombo();
+
       setState(() {
         _clientes = clientes;
         _invernaderos = invernaderos;
         _unidadDeMedidas = unidadDeMedidas;
-        // _precioController.text = '25.0';
       });
     }).catchError((error) {
       print('errooorrr');
@@ -86,7 +92,7 @@ class _VentasFormState extends State<VentasForm> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '${_idVenta == null || _idVenta.isEmpty ? 'Nuevo' : 'Editar'} venta',
+          '${_idVenta == null || _idVenta.isEmpty ? 'Nueva' : 'Editar'} venta',
         ),
       ),
       body: SingleChildScrollView(
@@ -101,9 +107,13 @@ class _VentasFormState extends State<VentasForm> {
                 SizedBox(height: ConstantsForm.height),
                 _createDropdownCliente(),
                 SizedBox(height: ConstantsForm.height),
+                _createDateVenta(),
+                SizedBox(height: ConstantsForm.height),
                 _createDropdownInvernadero(),
                 SizedBox(height: ConstantsForm.height),
                 _createDropdownProducto(),
+                SizedBox(height: ConstantsForm.height),
+                _createDropdownCampania(),
                 SizedBox(height: ConstantsForm.height),
                 _createDropdownUnidadMedida(),
                 SizedBox(height: ConstantsForm.height),
@@ -139,9 +149,17 @@ class _VentasFormState extends State<VentasForm> {
       value: selectedClient,
       onChanged: (DropdownItem cliente) {
         selectedClient = cliente;
-        _ventaCabecera.idCliente = cliente.id;
+        _venta.idCliente = cliente.id;
       },
       validator: (value) => value == null ? 'Ingrese un cliente' : null,
+    );
+  }
+
+  Widget _createDateVenta() {
+    return DatePickerForm(
+      initialDate: DateTime.now(),
+      onSaved: (date) => _venta.fechaCreacion = date,
+      onDateChanged: (date) => _venta.fechaCreacion = date,
     );
   }
 
@@ -151,7 +169,7 @@ class _VentasFormState extends State<VentasForm> {
       options: _invernaderos,
       value: selectedInvernadero,
       onChanged: (DropdownItem idInvernadero) async {
-        final productos = await _ventasProvider
+        final productos = await _dropdownProvider
             .getProductosByInvernaderoCombo(idInvernadero.id);
         setState(() {
           _productos = productos;
@@ -160,6 +178,19 @@ class _VentasFormState extends State<VentasForm> {
         _ventaDetalle.idInvernadero = idInvernadero.id;
       },
       validator: (value) => value == null ? 'Ingrese un invernadero' : null,
+    );
+  }
+
+  Widget _createDropdownCampania() {
+    return AppDropdownInput(
+      hintText: "Campaña",
+      options: _campanias,
+      value: selectedCampania,
+      onChanged: (DropdownItem campania) async {
+        selectedCampania = campania;
+        _venta.idCampania = campania.id;
+      },
+      validator: (value) => value == null ? 'Ingrese una campaña' : null,
     );
   }
 
@@ -215,6 +246,7 @@ class _VentasFormState extends State<VentasForm> {
   }
 
   Widget _createPrecio() {
+    final double _price = _precioController.numberValue;
     return Expanded(
       child: Container(
         margin: EdgeInsets.only(left: 12.5),
@@ -232,8 +264,8 @@ class _VentasFormState extends State<VentasForm> {
               _ventaDetalle.precioUnitario = _precioController.numberValue;
             });
           },
-          validator: (value) => validators.isNumberEmpty(
-              value: value, message: 'Ingrese el precio'),
+          validator: (value) => validators.isPriceGreaterThanZero(
+              value: _price.toString(), message: 'Ingrese el precio'),
         ),
       ),
     );
@@ -242,6 +274,7 @@ class _VentasFormState extends State<VentasForm> {
   Widget _createMontoPagado() {
     int cantidad = _ventaDetalle.cantidad ?? 0;
     double precio = _ventaDetalle.precioUnitario ?? 0.0;
+    final double _monto = _montoPagadoController.numberValue;
     return TextFormField(
       controller: _montoPagadoController,
       enabled: cantidad == 0 || precio == 0 ? false : true,
@@ -254,14 +287,14 @@ class _VentasFormState extends State<VentasForm> {
               : 'El monto debe ser menor al monto total.',
           helperStyle: TextStyle(fontWeight: FontWeight.bold)),
       onSaved: (value) =>
-          _ventaCabecera.montoPagado = _montoPagadoController.numberValue,
-      onChanged: (String value) {
+          _venta.montoPagado = _montoPagadoController.numberValue,
+      onChanged: (value) {
         setState(() {
-          _ventaCabecera.montoPagado = _montoPagadoController.numberValue;
+          _venta.montoPagado = _montoPagadoController.numberValue;
         });
       },
-      validator: (value) =>
-          validators.isNumberEmpty(value: value, message: 'Ingrese el monto'),
+      validator: (value) => validators.isPriceGreaterThanZero(
+          value: _monto.toString(), message: 'Ingrese el monto'),
     );
   }
 
@@ -303,12 +336,11 @@ class _VentasFormState extends State<VentasForm> {
   Widget _createEstado() {
     double montoTotal =
         (_ventaDetalle.cantidad ?? 0) * (_ventaDetalle.precioUnitario ?? 0.0);
-    String estado =
-        montoTotal == (_ventaCabecera.montoPagado ?? 0) && montoTotal != 0
-            ? 'CANCELADO'
-            : 'PENDIENTE';
+    String estado = montoTotal == (_venta.montoPagado ?? 0) && montoTotal != 0
+        ? 'CANCELADO'
+        : 'PENDIENTE';
 
-    _ventaCabecera.idEstado = Estado.getValue(estado == 'CANCELADO'
+    _venta.idEstado = Estado.getValue(estado == 'CANCELADO'
         ? EstadoEnum.CANCELADO
         : estado == 'PENDIENTE'
             ? EstadoEnum.PENDIENTE
@@ -344,16 +376,9 @@ class _VentasFormState extends State<VentasForm> {
       });
       _formKey.currentState.save();
       _ventaDetalle.idItem = 1;
-      _ventaCabecera.montoTotal =
-          _ventaDetalle.precioUnitario * _ventaDetalle.cantidad;
-      _ventaCabecera.ventaDetalle = [_ventaDetalle];
-      if (_idVenta != null) {
-        // editar
-        // response = await _clienteProvider.updateClient(cliente);
-      } else {
-        response = await _ventasProvider.createVenta(_ventaCabecera);
-        // print(ventaCabeceraToJson(_ventaCabecera));
-      }
+      _venta.montoTotal = _ventaDetalle.precioUnitario * _ventaDetalle.cantidad;
+      _venta.ventaDetalles = [_ventaDetalle];
+      response = await _ventasProvider.createVenta(_venta);
 
       _customAlertDialog.confirmAlert(
           context: context,
@@ -368,6 +393,7 @@ class _VentasFormState extends State<VentasForm> {
         _isSaving = false;
       });
     } catch (e) {
+      print(e);
       _customAlertDialog.errorAlert(
         context: context,
         title: 'Ops!',
