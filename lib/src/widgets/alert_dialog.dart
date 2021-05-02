@@ -8,8 +8,6 @@ class Constants {
 }
 
 class CustomAlertDialog {
-  static CustomAlertDialog _alertDialog;
-
   confirmAlert(
       {BuildContext context,
       Function backFunction,
