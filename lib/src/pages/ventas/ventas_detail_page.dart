@@ -1,7 +1,13 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
+import 'package:pepinos/src/enums/estado_enum.dart';
+import 'package:pepinos/src/models/venta_model.dart';
+// import 'package:pepinos/src/models/venta_detalle_model.dart';
+import 'package:pepinos/src/providers/ventas/ventas_provider.dart';
 import 'package:pepinos/src/utils/utils_validatos.dart' as validators;
+import 'package:pepinos/src/utils/number_format.dart';
+import 'package:pepinos/src/widgets/alert_dialog.dart';
+import 'package:pepinos/src/widgets/date_picker_form.dart';
 
 class VentasDetailPage extends StatefulWidget {
   @override
@@ -10,13 +16,16 @@ class VentasDetailPage extends StatefulWidget {
 
 class _VentasDetailPageState extends State<VentasDetailPage> {
   final _formKey = GlobalKey<FormState>();
-  List<Pago> pagos = [
-    Pago(date: '15/05/20', description: 'Pago 1', pay: 25.0),
-    Pago(date: '15/05/20', description: 'Pago 1', pay: 25.0),
-    Pago(date: '15/05/20', description: 'Pago 1', pay: 25.0),
-  ];
-
-  final _descriptionController = TextEditingController();
+  final CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
+  Venta _venta;
+  VentaDetalle _ventaDetalle = new VentaDetalle();
+  String _idVenta = '';
+  VentasProvider _ventasProvider = new VentasProvider();
+  List<VentaPago> _pagos = [];
+  bool isLoading = false;
+  // double _totalPagado = 0;
+  DateTime _dateSelected = DateTime.now();
+  VentaPago _ventaPago = new VentaPago();
 
   final _montoController = MoneyMaskedTextController(
     decimalSeparator: '.',
@@ -26,23 +35,76 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
   );
 
   @override
+  void initState() {
+    super.initState();
+
+    Future.delayed(Duration.zero, () async {
+      if (ModalRoute.of(context).settings.arguments != null) {
+        _idVenta = ModalRoute.of(context).settings.arguments;
+        getVenta(_idVenta);
+      }
+    });
+
+    _montoController.addListener(_checkMontoPagado);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _ventasProvider.token.cancel();
+    _montoController.dispose();
+  }
+
+  getVenta(String idVenta) async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
+      _venta = await _ventasProvider.getOneVenta(idVenta: _idVenta);
+      _ventaDetalle = _venta.ventaDetalles[0];
+      _pagos = _venta.ventaPagos;
+      getTotalPagos(_pagos);
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      print(e);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Boleta 0054545'),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            _createTotales(),
-            _createSubtitle(title: 'DETALLES'),
-            _createDetails(),
-            _createSubtitle(title: 'PAGOS', icon: Icons.add_circle),
-            _createListPagos()
-          ],
+    return WillPopScope(
+      onWillPop: () => _moveToScreen(context),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_venta?.numeroComprobante ?? ''),
         ),
+        body: isLoading || _venta == null
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[
+                    _createTotales(),
+                    _createSubtitle(title: 'DETALLES'),
+                    _createDetails(),
+                    _createSubtitle(title: 'PAGOS', icon: Icons.add_circle),
+                    _createListPagos()
+                  ],
+                ),
+              ),
       ),
     );
+  }
+
+  Future<bool> _moveToScreen(BuildContext context) async {
+    Navigator.pushReplacementNamed(context, "/");
+    return Future.value(true);
   }
 
   Widget _createSubtitle({@required String title, IconData icon}) {
@@ -58,7 +120,8 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
                   title,
                   style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                 )),
-            icon != null
+            icon != null &&
+                    _venta.idEstado == Estado.getValue(EstadoEnum.PENDIENTE)
                 ? Container(
                     padding:
                         EdgeInsets.symmetric(vertical: 10.0, horizontal: 30.0),
@@ -95,7 +158,8 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
             children: <Widget>[
               Text('Monto Total', style: textStyle),
               SizedBox(height: 10.0),
-              Text('S/ 75.00', style: montosTextStyle),
+              Text('S/ ${(_venta.montoTotal).toStringDouble(2)}',
+                  style: montosTextStyle),
             ],
           ),
         ),
@@ -105,7 +169,8 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
             children: <Widget>[
               Text('Monto Pagado', style: textStyle),
               SizedBox(height: 10.0),
-              Text('S/ 65.00', style: montosTextStyle),
+              Text('S/ ${(_venta.montoPagado).toStringDouble(2)}',
+                  style: montosTextStyle),
             ],
           ),
         )
@@ -120,22 +185,38 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
         children: <Widget>[
           Row(
             children: <Widget>[
-              _createItem(title: 'Cliente', subtitle: 'Miguel'),
-              _createItem(title: 'Invernadero', subtitle: 'Cieneguilla')
+              _createItem(title: 'Cliente', subtitle: _venta.cliente),
+              _createItem(
+                  title: 'Invernadero',
+                  subtitle: _ventaDetalle.nombreInvernadero)
             ],
           ),
           SizedBox(height: 30.0),
           Row(
             children: <Widget>[
-              _createItem(title: 'Producto', subtitle: 'Pepino'),
-              _createItem(title: 'Unidad de Medida', subtitle: 'Docena')
+              _createItem(title: 'Fecha', subtitle: _venta.fechaCreacion),
+              _createItem(title: 'Campaña', subtitle: _venta.nombreCampania)
             ],
           ),
           SizedBox(height: 30.0),
           Row(
             children: <Widget>[
-              _createItem(title: 'Cantidad', subtitle: '5'),
-              _createItem(title: 'Precio Unitario', subtitle: '12.50')
+              _createItem(
+                  title: 'Producto', subtitle: _ventaDetalle.nombreProducto),
+              _createItem(
+                  title: 'Unidad de Medida',
+                  subtitle: _ventaDetalle.unidadMedida)
+            ],
+          ),
+          SizedBox(height: 30.0),
+          Row(
+            children: <Widget>[
+              _createItem(
+                  title: 'Cantidad',
+                  subtitle: _ventaDetalle.cantidad.toString()),
+              _createItem(
+                  title: 'Precio Unitario',
+                  subtitle: _ventaDetalle.precioUnitario.toString())
             ],
           )
         ],
@@ -169,13 +250,13 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
       child: ListView.builder(
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
-        itemCount: pagos.length,
+        itemCount: _pagos.length,
         itemBuilder: (BuildContext context, int index) {
           return ListTile(
-            title: Text(pagos[index].description),
-            subtitle: Text(pagos[index].date),
+            title: Text(_pagos[index].detallePago ?? ''),
+            subtitle: Text(_pagos[index].fechaPago),
             trailing: Text(
-              'S/ ${pagos[index].pay.toString()}',
+              'S/ ${_pagos[index].montoPagado}',
               style: TextStyle(fontWeight: FontWeight.w800),
             ),
           );
@@ -204,19 +285,38 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Monto faltante S/ 15.00',
+                      'Monto faltante S/ ${(_venta.montoTotal - _venta.montoPagado).toStringDouble(2)}',
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                   ),
                 ),
                 Container(
                   margin: EdgeInsets.only(bottom: 20.0),
+                  child: DatePickerForm(
+                    initialDate: _dateSelected,
+                    labelText: 'Fecha',
+                    onSaved: (String value) => _ventaPago.fechaPago = value,
+                    onDateChanged: (value) {
+                      setState(() {
+                        _ventaPago.fechaPago = value;
+                      });
+                    },
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.only(bottom: 20.0),
                   child: TextFormField(
-                    controller: _descriptionController,
+                    initialValue: _ventaPago.detallePago,
                     decoration: InputDecoration(
                       labelText: 'Descripción',
                       border: OutlineInputBorder(),
                     ),
+                    onSaved: (value) => _ventaPago.detallePago = value,
+                    onChanged: (String value) {
+                      setState(() {
+                        _ventaPago.detallePago = value;
+                      });
+                    },
                     validator: (value) => validators.isTextEmpty(
                         length: 1,
                         message: 'Ingrese una descripción.',
@@ -233,9 +333,16 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
                       labelText: 'Monto',
                       border: OutlineInputBorder(),
                     ),
-                    validator: (value) => validators.isNumberEmpty(
+                    onSaved: (value) =>
+                        _ventaPago.montoPagado = _montoController.numberValue,
+                    onChanged: (String value) {
+                      setState(() {
+                        _ventaPago.montoPagado = _montoController.numberValue;
+                      });
+                    },
+                    validator: (value) => validators.isPriceGreaterThanZero(
                         message: 'Ingrese un monto mayor a S/ 0.00.',
-                        value: value),
+                        value: _montoController.numberValue.toString()),
                   ),
                 ),
                 Align(
@@ -248,28 +355,55 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
           ),
         );
       },
-    );
+    ).whenComplete(() {
+      _ventaPago.detallePago = '';
+      _montoController.updateValue(0);
+    });
   }
 
-  void _addNewPago() {
+  void _addNewPago() async {
+    String response;
     if (!_formKey.currentState.validate()) return;
     _formKey.currentState.save();
-    setState(() {
-      pagos.add(new Pago(
-          date: '15/05/21',
-          description: _descriptionController.text,
-          pay: _montoController.numberValue));
-    });
-    Navigator.pop(context);
-    _montoController.updateValue(0);
-    _descriptionController.text = '';
+
+    try {
+      response = await _ventasProvider.updatePago(
+          pago: _ventaPago, numeroComprobante: _venta.numeroComprobante);
+
+      _customAlertDialog.confirmAlert(
+          context: context,
+          title: 'Se registro el pago',
+          description: response,
+          text: 'Aceptar',
+          backFunction: () {
+            Navigator.pop(context);
+            getVenta(_idVenta);
+          });
+    } catch (e) {
+      _customAlertDialog.errorAlert(
+        context: context,
+        title: 'Ops!',
+        description: 'Ocurrio un error.',
+        text: 'Aceptar',
+      );
+    }
   }
-}
 
-class Pago {
-  String description;
-  String date;
-  double pay;
+  void getTotalPagos(List<VentaPago> pagos) {
+    final total = pagos.length > 0
+        ? pagos.fold(
+            0,
+            (previousValue, element) =>
+                previousValue + element.montoPagado.toDouble())
+        : 0.0;
+    _venta.montoPagado = total;
+  }
 
-  Pago({this.description, this.date, this.pay});
+  void _checkMontoPagado() {
+    final monto = _montoController.numberValue;
+    final montoFaltante = _venta.montoTotal - _venta.montoPagado;
+    if (monto > montoFaltante.toPrecision(2)) {
+      _montoController.updateValue(0);
+    }
+  }
 }
