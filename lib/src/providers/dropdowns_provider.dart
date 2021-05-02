@@ -1,40 +1,108 @@
 import 'package:pepinos/src/models/dropdown_items.dart';
 import 'package:dio/dio.dart';
+import 'package:pepinos/src/utils/api.dart';
 
 class DropdownProvider {
   Dio dio;
-  final String url = 'http://192.168.1.24:8080';
   CancelToken token;
   DropdownProvider() {
     dio = new Dio();
     token = CancelToken();
   }
-// List<DropdownItem>
-  Future<dynamic> getClienteDropdown() async {
-    try {
-      // var list = [{'id':3, 'name':'third'},{'id':4, 'name':'fourth'}];
-      // final clientes = [
-      //   {'id_cliente': 1, 'nombres': 'Carlos Morales'},
-      //   {'id_cliente': 1, 'nombres': 'Miguel Morales'}
-      // ];
-      final response = await dio.get('$url/api/clientes', cancelToken: token);
-      final dynamic decodedData = response.data;
-      // final result = clientes.map((cliente) =>
-      //     DropdownItem(id: cliente['id_cliente'], text: cliente['nombres']));
-      final clientes = DropdownItem.fromJsonList(
-          jsonList: decodedData['clientes'],
-          idValue: 'id_cliente',
-          textValue: 'nombres');
 
-      // .toList();
-      // final response = await dio.get(
-      //   '$url/api/clientes',
-      // );
-      // final decodedData = response.data;
-      print(clientes);
-      return clientes.items;
+  Future<List<DropdownItem>> getClientsCombo() async {
+    List<DropdownItem> items = [];
+    try {
+      final response =
+          await dio.get('$apiUrl/api/clientes/combo', cancelToken: token);
+      final dynamic decodedData = response.data;
+      if (decodedData == null) return [];
+      for (final item in decodedData) {
+        items.add(new DropdownItem.fromJsonMap(
+            json: item,
+            idValue: item['id_cliente'],
+            textValue: item['nombres'] + ' ' + item['apellidos']));
+      }
+      return items;
     } catch (e) {
-      print(e);
+      return e;
+    }
+  }
+
+  Future<List<DropdownItem>> getCampaniasCombo() async {
+    List<DropdownItem> items = [];
+    try {
+      final response =
+          await dio.get('$apiUrl/api/campanias/combo', cancelToken: token);
+      final dynamic decodedData = response.data;
+      if (decodedData == null) return [];
+      for (final item in decodedData) {
+        items.add(new DropdownItem.fromJsonMap(
+            json: item,
+            idValue: item['id_campania'],
+            textValue: item['nombre_campania']));
+      }
+      return items;
+    } catch (e) {
+      return e;
+    }
+  }
+
+  Future<List<DropdownItem>> getInvernaderosCombo() async {
+    List<DropdownItem> items = [];
+    try {
+      final response =
+          await dio.get('$apiUrl/api/invernaderos/combo', cancelToken: token);
+      final dynamic decodedData = response.data;
+      if (decodedData == null) return [];
+      for (final item in decodedData) {
+        items.add(new DropdownItem.fromJsonMap(
+            json: item,
+            idValue: item['id_invernadero'],
+            textValue: item['nombre_invernadero']));
+      }
+      return items;
+    } catch (e) {
+      return e;
+    }
+  }
+
+  Future<List<DropdownItem>> getUnidadMedidasCombo() async {
+    List<DropdownItem> items = [];
+    try {
+      final response =
+          await dio.get('$apiUrl/api/tablageneral/2', cancelToken: token);
+      final dynamic decodedData = response.data;
+      if (decodedData == null) return [];
+      for (final item in decodedData) {
+        items.add(new DropdownItem.fromJsonMap(
+            json: item,
+            idValue: item['id_tabla_general'],
+            textValue: item['descripcion']));
+      }
+      return items;
+    } catch (e) {
+      return e;
+    }
+  }
+
+  Future<List<DropdownItem>> getProductosByInvernaderoCombo(
+      int idInvernadero) async {
+    List<DropdownItem> items = [];
+    try {
+      final response = await dio.get(
+          '$apiUrl/api/productos/invernadero/$idInvernadero',
+          cancelToken: token);
+      final dynamic decodedData = response.data;
+      if (decodedData == null) return [];
+      for (final item in decodedData) {
+        items.add(new DropdownItem.fromJsonMap(
+            json: item,
+            idValue: item['id_producto'],
+            textValue: item['nombre_producto']));
+      }
+      return items;
+    } catch (e) {
       return e;
     }
   }
