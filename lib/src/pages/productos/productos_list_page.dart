@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pepinos/src/models/paginacion_model.dart';
 import 'package:pepinos/src/models/producto_model.dart';
 import 'package:pepinos/src/providers/productos/productos_provider.dart';
 import 'package:pepinos/src/widgets/alert_dialog.dart';
@@ -12,10 +13,30 @@ class ProductosListPage extends StatefulWidget {
 class _ProductosListPageState extends State<ProductosListPage> {
   final ProductosProvider _productosProvider = new ProductosProvider();
   final CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
+  ScrollController _scrollController = new ScrollController();
+  bool _isLoading = false;
+  int _nextPage = 1;
+  Paginacion _paginacion = new Paginacion();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController.addListener(_handleController);
+
+    _productosProvider.getAllProducts().then((response) {
+      setState(() {
+        _paginacion = response['paginacion'];
+      });
+    }).catchError((onError) {
+      _productosProvider.disposeStream();
+    });
+  }
 
   @override
   void dispose() {
     super.dispose();
+    _productosProvider?.disposeStream();
     _productosProvider.token.cancel();
   }
 
@@ -26,7 +47,12 @@ class _ProductosListPageState extends State<ProductosListPage> {
         title: Text('Productos'),
       ),
       drawer: DrawerMenu(),
-      body: _createFutureBuilderProducts(context),
+      body: Stack(
+        children: <Widget>[
+          _createStreamBuilderProducts(context),
+          _createLoading()
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () => _goFormPage(context, null),
@@ -34,14 +60,14 @@ class _ProductosListPageState extends State<ProductosListPage> {
     );
   }
 
-  _createFutureBuilderProducts(BuildContext context) {
-    return FutureBuilder(
-      future: _productosProvider.getAllProducts(),
-      builder: (BuildContext context, AsyncSnapshot<List<Producto>> snapshot) {
+  _createStreamBuilderProducts(BuildContext context) {
+    return StreamBuilder(
+      stream: _productosProvider.productosStream,
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
         return snapshot.hasData
             ? _createListProduct(snapshot.data)
             : snapshot.hasError
-                ? showError(context)
+                ? _customAlertDialog.showErrorInBuilders(context)
                 : Center(child: CircularProgressIndicator());
       },
     );
@@ -80,18 +106,49 @@ class _ProductosListPageState extends State<ProductosListPage> {
     );
   }
 
+  Widget _createLoading() {
+    return _isLoading
+        ? Column(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+                Center(child: CircularProgressIndicator()),
+                SizedBox(
+                  height: 20.0,
+                )
+              ])
+        : Container();
+  }
+
   _goFormPage(BuildContext context, String idProducto) {
     Navigator.pushNamed(context, 'productos/form',
         arguments:
             idProducto == null || idProducto.isEmpty ? null : idProducto);
   }
 
-  showError(BuildContext context) {
-    Future.delayed(
-        Duration.zero,
-        () => _customAlertDialog.errorAlert(
-              context: context,
-            ));
-    return Container();
+  _handleController() async {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      if (_paginacion.pagSiguiente == null) return;
+      _nextPage++;
+      setState(() {
+        _isLoading = true;
+      });
+      try {
+        final response =
+            await _productosProvider.getAllProducts(pagina: _nextPage);
+        setState(() {
+          _paginacion = response['paginacion'];
+          _isLoading = false;
+        });
+        _scrollController.animateTo(_scrollController.position.pixels + 50,
+            duration: Duration(milliseconds: 450), curve: Curves.fastOutSlowIn);
+      } catch (e) {
+        _productosProvider.disposeStream();
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 }
