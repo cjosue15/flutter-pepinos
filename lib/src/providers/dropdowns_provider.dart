@@ -106,4 +106,15 @@ class DropdownProvider {
       return e;
     }
   }
+
+  Future<dynamic> getProductosCombo() async {
+    try {
+      final response =
+          await dio.get('$apiUrl/api/productos/combo', cancelToken: token);
+      final dynamic decodedData = response.data;
+      return decodedData;
+    } catch (e) {
+      return e;
+    }
+  }
 }
