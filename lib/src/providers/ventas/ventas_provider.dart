@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:pepinos/src/models/dropdown_items.dart';
 import 'package:pepinos/src/models/paginacion_model.dart';
 import 'package:pepinos/src/models/venta_model.dart';
 import 'package:pepinos/src/utils/api.dart';
