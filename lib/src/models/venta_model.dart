@@ -3,7 +3,6 @@
 //     final venta = ventaFromJson(jsonString);
 
 import 'dart:convert';
-import 'package:intl/intl.dart';
 import 'package:pepinos/src/utils/date_format.dart';
 
 Venta ventaFromJson(String str) => Venta.fromJson(json.decode(str));
@@ -21,7 +20,7 @@ class Venta {
     this.nombreCampania,
     this.idEstado,
     this.estado,
-    this.fechaCreacion,
+    this.fechaVenta,
     this.ventaDetalles,
     this.ventaPagos,
   });
@@ -35,7 +34,7 @@ class Venta {
   String nombreCampania;
   int idEstado;
   String estado;
-  String fechaCreacion;
+  String fechaVenta;
   List<VentaDetalle> ventaDetalles;
   List<VentaPago> ventaPagos;
   List<Venta> items = [];
@@ -53,7 +52,9 @@ class Venta {
         // fechaVenta: json.containsKey("fecha_venta")
         //     ? DateTime.parse(json["fecha_venta"])
         //     : null,
-        fechaCreacion: dateTimeToString(json["fecha_creacion"]),
+        fechaVenta: json["fecha_venta"] != null
+            ? dateTimeToString(json["fecha_venta"])
+            : null,
         ventaDetalles: json.containsKey("venta_detalles")
             ? List<VentaDetalle>.from(
                 json["venta_detalles"]?.map((x) => VentaDetalle.fromJson(x)))
@@ -77,7 +78,7 @@ class Venta {
         "id_cliente": idCliente,
         "monto_total": montoTotal,
         "id_campania": idCampania,
-        "fecha_venta": dateFormatToDatabase(fechaCreacion),
+        "fecha_venta": dateFormatToDatabase(fechaVenta),
         "monto_pagado": montoPagado,
         "detalle_pago": "Primer pago",
         // "id_estado": idEstado,

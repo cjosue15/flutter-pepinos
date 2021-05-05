@@ -158,8 +158,8 @@ class _VentasFormState extends State<VentasForm> {
   Widget _createDateVenta() {
     return DatePickerForm(
       initialDate: DateTime.now(),
-      onSaved: (date) => _venta.fechaCreacion = date,
-      onDateChanged: (date) => _venta.fechaCreacion = date,
+      onSaved: (date) => _venta.fechaVenta = date,
+      onDateChanged: (date) => _venta.fechaVenta = date,
     );
   }
 

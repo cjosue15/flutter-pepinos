@@ -194,7 +194,7 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
           SizedBox(height: 30.0),
           Row(
             children: <Widget>[
-              _createItem(title: 'Fecha', subtitle: _venta.fechaCreacion),
+              _createItem(title: 'Fecha', subtitle: _venta.fechaVenta),
               _createItem(title: 'Campaña', subtitle: _venta.nombreCampania)
             ],
           ),
