@@ -10,6 +10,7 @@ class InfiniteListView<T> extends StatefulWidget {
   final List<T> data;
   final bool isFetching;
   final bool isInitialLoading;
+  final bool hasInitialError;
   final int length;
 
   InfiniteListView({
@@ -20,6 +21,7 @@ class InfiniteListView<T> extends StatefulWidget {
     this.isFetching = false,
     this.isInitialLoading = false,
     this.length,
+    this.hasInitialError = false,
   });
 
   @override
@@ -67,20 +69,26 @@ class _InfiniteListViewState<T> extends State<InfiniteListView<T>> {
 
   @override
   Widget build(BuildContext context) {
+    print(widget.hasInitialError);
     return widget.isInitialLoading
         ? Center(
             child: CircularProgressIndicator(),
           )
         : Stack(
             children: <Widget>[
-              widget.data.length > 0
-                  ? ListView.builder(
-                      controller: _scrollController,
-                      itemCount: widget.data?.length ?? 0,
-                      itemBuilder: (context, index) => widget.itemBuilder(
-                          context, widget.data[index], index),
-                    )
-                  : Container(),
+              widget.hasInitialError
+                  ? ErrorPage()
+                  : widget.data.length > 0
+                      ? ListView.builder(
+                          controller: _scrollController,
+                          itemCount: widget.data?.length ?? 0,
+                          itemBuilder: (context, index) => widget.itemBuilder(
+                              context, widget.data[index], index),
+                        )
+                      : NoDataPage(
+                          title: 'No data',
+                        ),
+
               // ListView(
               //   controller: _scrollController,
               //   children: <Widget>[
@@ -130,5 +138,27 @@ class _InfiniteListViewState<T> extends State<InfiniteListView<T>> {
       }
       widget.onScroll(widget.paginacion.pagSiguiente);
     }
+  }
+}
+
+class NoDataPage extends StatelessWidget {
+  final String title;
+  NoDataPage({this.title});
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text('${title ?? 'No hay data'}'),
+    );
+  }
+}
+
+class ErrorPage extends StatelessWidget {
+  final String title;
+  ErrorPage({this.title});
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text('${title ?? 'Ops parece que ocurrio un error!'}'),
+    );
   }
 }
