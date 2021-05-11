@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:pepinos/src/pages/campanias/campanias_form_page.dart';
+import 'package:pepinos/src/pages/campanias/campanias_list_page.dart';
 import 'package:pepinos/src/pages/clientes/cliente_form_page.dart';
 import 'package:pepinos/src/pages/clientes/clientes_list_page.dart';
 import 'package:pepinos/src/pages/invernaderos/invernadero_form_page.dart';
@@ -20,5 +22,7 @@ Map<String, WidgetBuilder> getAplicationRoutes() {
     'productos/form': (BuildContext context) => ProductsFormPage(),
     'invernaderos': (BuildContext context) => InvernaderoListPage(),
     'invernaderos/form': (BuildContext context) => InvernaderoPageForm(),
+    'campanias': (BuildContext context) => CampaniasListPage(),
+    'campanias/form': (BuildContext context) => CampaniaFormPage(),
   };
 }
