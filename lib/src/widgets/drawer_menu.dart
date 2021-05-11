@@ -32,7 +32,11 @@ class _DrawerMenuState extends State<DrawerMenu> {
     DrawerItem(
         title: 'Invernaderos',
         icon: Icon(Icons.place),
-        navigateTo: 'invernaderos')
+        navigateTo: 'invernaderos'),
+    DrawerItem(
+        title: 'Campañas',
+        icon: Icon(Icons.calendar_today),
+        navigateTo: 'campanias')
   ];
 
   @override
