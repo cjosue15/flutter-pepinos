@@ -13,7 +13,7 @@ class DatePickerForm extends StatefulWidget {
     this.labelText = 'Fecha',
     this.validator,
     this.onSaved,
-    this.onDateChanged,
+    @required this.onDateChanged,
     this.initialDate,
   });
 
@@ -39,7 +39,8 @@ class _DatePickerFormState extends State<DatePickerForm> {
     // _dateFormatToDataBase = DateFormat('yyyy-MM-dd');
     // _dateFormat = DateFormat.yMd('ar');
     _selectedDate = widget.initialDate ?? DateTime.now();
-    textController.text = _dateFormat.format(_selectedDate);
+    textController.text =
+        widget.initialDate != null ? _dateFormat.format(_selectedDate) : '';
   }
 
   @override
@@ -68,10 +69,12 @@ class _DatePickerFormState extends State<DatePickerForm> {
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime picked = await showDatePicker(
-        context: context,
-        initialDate: _selectedDate,
-        firstDate: new DateTime(2000),
-        lastDate: new DateTime(2100));
+      locale: const Locale("es", "PE"),
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(DateTime.now().year + 5),
+    );
     if (picked != null && picked != widget.initialDate) {
       _selectedDate = picked;
       textController.text = _dateFormat.format(picked);
