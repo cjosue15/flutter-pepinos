@@ -18,49 +18,66 @@ class _InvernaderoPageFormState extends State<InvernaderoPageForm> {
   InvernaderoProvider _invernaderoProvider = new InvernaderoProvider();
   CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
   List<Product> _productos = [];
-  Invernadero _invernadero = new Invernadero();
-
-  //   ProductosProvider _productosProvider = new ProductosProvider();
-  // final CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
-  // Producto _producto = new Producto();
+  Invernadero _invernadero;
   bool _isSaving = false;
   bool _isLoading = false;
   bool _hasError = false;
-  //
+  final _nameController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     Future.delayed(Duration.zero).then((_) async {
-      setState(() {
-        _isLoading = true;
-      });
+      if (mounted)
+        setState(() {
+          _isLoading = true;
+        });
       try {
         final productosJson = await _dropdownProvider.getProductosCombo();
+        if (ModalRoute.of(context).settings.arguments != null) {
+          _idInvernadero = ModalRoute.of(context).settings.arguments;
+          this._invernadero = await this
+              ._invernaderoProvider
+              .getInvernadero(this._idInvernadero);
+          _nameController.text = this._invernadero.nombreInvernadero;
+        }
+
         this._productos = productosJson
             .map<Product>((item) => Product(
-                checked: false,
+                checked: this._invernadero == null ||
+                        this._invernadero.productosSeleccionados == null
+                    ? false
+                    : this
+                            ._invernadero
+                            .productosSeleccionados
+                            .contains(item['id_producto'])
+                        ? true
+                        : false,
                 nombre: item['nombre_producto'],
                 id: item['id_producto']))
             .toList();
-        // setState(() {});
-        print(this._productos);
-        if (ModalRoute.of(context).settings.arguments != null) {
-          _idInvernadero = ModalRoute.of(context).settings.arguments;
-          // _producto = await _productosProvider.getProduct(_idProducto);
-          // _nameController.text = _producto.nombreProducto;
-          // _descripcionController.text = _producto.descripcion;
-        }
-        setState(() {
-          _isLoading = false;
-          _hasError = false;
-        });
+        if (mounted)
+          setState(() {
+            _isLoading = false;
+            _hasError = false;
+          });
       } catch (e) {
-        setState(() {
-          _isLoading = false;
-          _hasError = true;
-        });
+        if (mounted)
+          setState(() {
+            _isLoading = false;
+            _hasError = true;
+          });
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _nameController?.dispose();
+    _dropdownProvider.token.cancel();
+    _invernaderoProvider?.disposeStream();
+    _invernaderoProvider.token.cancel();
+    super.dispose();
   }
 
   @override
@@ -114,7 +131,7 @@ class _InvernaderoPageFormState extends State<InvernaderoPageForm> {
 
   Widget _createInvernaderoName() {
     return TextFormField(
-      // controller: _nameController,
+      controller: _nameController,
       decoration: InputDecoration(
         labelText: 'Nombre',
         border: OutlineInputBorder(),
@@ -169,8 +186,18 @@ class _InvernaderoPageFormState extends State<InvernaderoPageForm> {
           .where((producto) => producto.checked)
           .map((producto) => producto.id)
           .toList();
-      response =
-          await _invernaderoProvider.createInvernadero(this._invernadero);
+      if (this._idInvernadero == null) {
+        response =
+            await _invernaderoProvider.createInvernadero(this._invernadero);
+      } else {
+        this._invernadero.productosNoSeleccionados = this
+            ._productos
+            .where((producto) => !producto.checked)
+            .map((producto) => producto.id)
+            .toList();
+        response = await _invernaderoProvider.updateInvernadero(
+            this._idInvernadero, this._invernadero);
+      }
       _customAlertDialog.confirmAlert(
           context: context,
           title: 'Registro exitoso',
