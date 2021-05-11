@@ -1,8 +1,6 @@
-// To parse this JSON data, do
-//
-//     final venta = ventaFromJson(jsonString);
-
 import 'dart:convert';
+import 'package:pepinos/src/models/dropdown_items.dart';
+import 'package:pepinos/src/models/paginacion_model.dart';
 import 'package:pepinos/src/utils/date_format.dart';
 
 Venta ventaFromJson(String str) => Venta.fromJson(json.decode(str));
@@ -53,7 +51,7 @@ class Venta {
         //     ? DateTime.parse(json["fecha_venta"])
         //     : null,
         fechaVenta: json["fecha_venta"] != null
-            ? dateTimeToString(json["fecha_venta"])
+            ? dateFormFromDatabase(json["fecha_venta"])
             : null,
         ventaDetalles: json.containsKey("venta_detalles")
             ? List<VentaDetalle>.from(
@@ -153,14 +151,9 @@ String ventaPagoToJson(VentaPago data) => json.encode(data.toJson());
 
 class VentaPago {
   VentaPago(
-      {this.idVentaPago,
-      // this.numeroComprobante,
-      this.montoPagado,
-      this.fechaPago,
-      this.detallePago});
+      {this.idVentaPago, this.montoPagado, this.fechaPago, this.detallePago});
 
   int idVentaPago;
-  // String numeroComprobante;
   double montoPagado;
   String fechaPago;
   String detallePago;
@@ -168,9 +161,8 @@ class VentaPago {
   factory VentaPago.fromJson(Map<String, dynamic> json) => VentaPago(
         idVentaPago: json["id_venta_pago"],
         detallePago: json["detalle_pago"],
-        // numeroComprobante: json["numero_comprobante"],
         montoPagado: json["monto_pagado"].toDouble(),
-        fechaPago: dateTimeToString(json["fecha_pago"]),
+        fechaPago: dateFormFromDatabase(json["fecha_pago"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -179,5 +171,74 @@ class VentaPago {
         "monto_pagado": montoPagado,
         "fecha_pago": dateFormatToDatabase(fechaPago),
         "detalle_pago": detallePago
+      };
+}
+
+class VentaFilterListado {
+  List<DropdownItem> campanias;
+  List<DropdownItem> invernaderos;
+  List<DropdownItem> clientes;
+  List<DropdownItem> estados;
+
+  VentaFilterListado(
+      {this.campanias, this.clientes, this.invernaderos, this.estados});
+}
+
+VentaFilter ventaFilterFromJson(String str) =>
+    VentaFilter.fromJson(json.decode(str));
+
+String ventaFilterToJson(VentaFilter data) => json.encode(data.toJson());
+
+class VentaFilter {
+  int pagina;
+  int filas;
+  int idCliente;
+  int idCampania;
+  int idInvernadero;
+  int idEstado;
+  String fechaDesde;
+  String fechaHasta;
+  double montoMinimo;
+  double montoMaximo;
+
+  VentaFilter(
+      {this.pagina = 1,
+      this.filas = 10,
+      this.idCliente,
+      this.idCampania,
+      this.idEstado,
+      this.idInvernadero,
+      this.fechaDesde,
+      this.fechaHasta,
+      this.montoMinimo,
+      this.montoMaximo});
+
+  int get page => this.pagina;
+
+  set nextPage(int value) {
+    this.pagina = value;
+  }
+
+  factory VentaFilter.fromJson(Map<String, dynamic> json) => VentaFilter(
+        pagina: json["pagina"],
+        filas: json["filas"],
+        idCliente: json["idCliente"],
+        idCampania: json["idCampania"],
+        idEstado: json["idEstado"],
+        fechaDesde: json["fechaDesde"],
+        fechaHasta: json["fechaHasta"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "pagina": pagina,
+        "filas": filas,
+        "idCliente": idCliente ?? 0,
+        "idCampania": idCampania ?? 0,
+        "idEstado": idEstado ?? 0,
+        "idInvernadero": idInvernadero ?? 0,
+        "fechaDesde": fechaDesde,
+        "fechaHasta": fechaHasta,
+        "montoMinimo": montoMinimo ?? 0,
+        "montoMaximo": montoMaximo ?? 0,
       };
 }
