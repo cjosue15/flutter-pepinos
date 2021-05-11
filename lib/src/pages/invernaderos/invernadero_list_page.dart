@@ -23,7 +23,7 @@ class _InvernaderoListPageState extends State<InvernaderoListPage> {
       // body: _createFutureBuilderInvernaderos(context),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () => _goFormPage(context, null),
+        onPressed: () => _goFormPage(context, '3'),
       ),
     );
   }
