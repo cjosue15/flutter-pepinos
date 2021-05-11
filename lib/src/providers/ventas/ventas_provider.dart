@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:pepinos/src/models/dropdown_items.dart';
 import 'package:pepinos/src/models/paginacion_model.dart';
 import 'package:pepinos/src/models/venta_model.dart';
 import 'package:pepinos/src/utils/api.dart';
@@ -8,22 +9,9 @@ import 'package:pepinos/src/utils/api.dart';
 class VentasProvider {
   Dio dio = new Dio();
   CancelToken token = CancelToken();
-  List<Venta> _ventas = [];
   final Options _options = Options(headers: {
     HttpHeaders.contentTypeHeader: 'application/json',
   });
-
-  final _ventasStreamController = new StreamController<List<Venta>>();
-
-  Function(List<Venta>) get ventasSink => _ventasStreamController.sink.add;
-
-  Function(dynamic) get ventasAddError => _ventasStreamController.sink.addError;
-
-  Stream<List<Venta>> get ventasStream => _ventasStreamController.stream;
-
-  void disposeStream() {
-    _ventasStreamController?.close();
-  }
 
   Future<dynamic> createVenta(Venta venta) async {
     try {
@@ -35,6 +23,51 @@ class VentasProvider {
       );
       final decodedData = response.data;
       return decodedData['message'];
+    } catch (e) {
+      return e;
+    }
+  }
+
+  Future<VentaFilterListado> getFiltersVenta() async {
+    List<DropdownItem> clientes = [];
+    List<DropdownItem> invernaderos = [];
+    List<DropdownItem> campanias = [];
+    List<DropdownItem> estados = [];
+    try {
+      final response = await dio.get(
+        '$apiUrl/api/ventas/filtros',
+        cancelToken: token,
+      );
+      final decodedData = response.data;
+      for (final item in decodedData['campanias']) {
+        campanias.add(new DropdownItem.fromJsonMap(
+            json: item,
+            idValue: item['id_campania'],
+            textValue: item['nombre_campania']));
+      }
+      for (final item in decodedData['clientes']) {
+        clientes.add(new DropdownItem.fromJsonMap(
+            json: item,
+            idValue: item['id_cliente'],
+            textValue: item['nombres'] + ' ' + item['apellidos']));
+      }
+      for (final item in decodedData['invernaderos']) {
+        invernaderos.add(new DropdownItem.fromJsonMap(
+            json: item,
+            idValue: item['id_invernadero'],
+            textValue: item['nombre_invernadero']));
+      }
+      for (final item in decodedData['estados']) {
+        estados.add(new DropdownItem.fromJsonMap(
+            json: item,
+            idValue: item['id_tabla_general'],
+            textValue: item['descripcion']));
+      }
+      return VentaFilterListado(
+          campanias: campanias,
+          clientes: clientes,
+          invernaderos: invernaderos,
+          estados: estados);
     } catch (e) {
       return e;
     }
@@ -63,18 +96,15 @@ class VentasProvider {
     }
   }
 
-  Future<Map<String, dynamic>> getVentas({int pagina = 1}) async {
+  Future<Map<String, dynamic>> getVentas({VentaFilter ventaFilter}) async {
     try {
       final response = await dio.get('$apiUrl/api/ventas',
-          cancelToken: token, queryParameters: {'pagina': pagina, 'filas': 10});
+          cancelToken: token, queryParameters: ventaFilter.toJson());
       final dynamic decodedData = response.data;
       final ventas = new Venta.fromJsonList(jsonList: decodedData["data"]);
       final paginacion = new Paginacion.fromJson(decodedData["paginacion"]);
-      _ventas.addAll(ventas.items);
-      ventasSink(_ventas);
       return {'ventas': ventas.items, 'paginacion': paginacion};
     } catch (e) {
-      ventasAddError(e);
       return e;
     }
   }
