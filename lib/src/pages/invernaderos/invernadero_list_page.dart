@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:pepinos/src/models/invernadero.dart';
+import 'package:pepinos/src/models/paginacion_model.dart';
+import 'package:pepinos/src/providers/invernaderos/invernaderos_provider.dart';
 import 'package:pepinos/src/widgets/drawer_menu.dart';
+import 'package:pepinos/src/widgets/infinite_list_view.dart';
 
 class InvernaderoListPage extends StatefulWidget {
   @override
@@ -7,10 +11,43 @@ class InvernaderoListPage extends StatefulWidget {
 }
 
 class _InvernaderoListPageState extends State<InvernaderoListPage> {
+  Paginacion _paginacion = new Paginacion();
+  InvernaderoFilter _invernaderoFilter = new InvernaderoFilter();
+  InvernaderoProvider _invernaderoProvider = new InvernaderoProvider();
+  List<Invernadero> _invernaderos = [];
+  bool _hasInitialError = false;
+  bool _hasErrorAfterFetching = false;
+  bool _isInitialLoading = false;
+  bool _isFetching = false;
+
   @override
-  void dispose() {
-    super.dispose();
-    // _productosProvider.token.cancel();
+  void initState() {
+    super.initState();
+    if (mounted) {
+      setState(() {
+        _hasInitialError = false;
+        _isInitialLoading = true;
+      });
+    }
+    _invernaderoProvider
+        .getAllInvernaderos(invernaderoFilter: _invernaderoFilter)
+        .then((response) {
+      if (mounted) {
+        setState(() {
+          _paginacion = response['paginacion'];
+          _invernaderos = response['invernaderos'];
+          _hasInitialError = false;
+          _isInitialLoading = false;
+        });
+      }
+    }).catchError((onError) {
+      if (mounted) {
+        setState(() {
+          _hasInitialError = true;
+          _isInitialLoading = false;
+        });
+      }
+    });
   }
 
   @override
@@ -20,7 +57,18 @@ class _InvernaderoListPageState extends State<InvernaderoListPage> {
         title: Text('Invernaderos'),
       ),
       drawer: DrawerMenu(),
-      // body: _createFutureBuilderInvernaderos(context),
+      body: InfiniteListView<Invernadero>(
+        context: context,
+        itemBuilder: (context, item, index) => _createItem(item),
+        paginacion: _paginacion,
+        data: _invernaderos,
+        length: _invernaderos.length,
+        onScroll: (int pagina) {},
+        hasInitialError: _hasInitialError,
+        hasErrorAfterFetching: _hasErrorAfterFetching,
+        isInitialLoading: _isInitialLoading,
+        isFetching: _isFetching,
+      ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () => _goFormPage(context, '3'),
@@ -28,64 +76,28 @@ class _InvernaderoListPageState extends State<InvernaderoListPage> {
     );
   }
 
-  // Widget _createFutureBuilderInvernaderos(BuildContext context) {
-  //   return FutureBuilder(
-  //     future: _productosProvider.getAllProducts(),
-  //     builder: (BuildContext context, AsyncSnapshot<List<Producto>> snapshot) {
-  //       return snapshot.hasData
-  //           ? _createListProduct(snapshot.data)
-  //           : snapshot.hasError
-  //               ? showError(context)
-  //               : Center(child: CircularProgressIndicator());
-  //     },
-  //   );
-  // }
-
-  // Widget _createListProduct(List<Producto> productos) {
-  //   return productos.length > 0
-  //       ? ListView.builder(
-  //           itemCount: productos.length,
-  //           itemBuilder: (BuildContext context, int index) {
-  //             return _createItem(context, productos[index]);
-  //           },
-  //         )
-  //       : Center(
-  //           child: Text(
-  //           'No hay resultados para productos.',
-  //           style: TextStyle(fontSize: 20),
-  //         ));
-  // }
-
-  // Widget _createItem(BuildContext context, Producto producto) {
-  //   return Container(
-  //     child: Column(
-  //       children: <Widget>[
-  //         ListTile(
-  //             title: Text(producto.nombreProducto),
-  //             trailing: Icon(
-  //               Icons.keyboard_arrow_right,
-  //               color: Colors.green,
-  //             ),
-  //             onTap: () =>
-  //                 _goFormPage(context, producto.idProducto.toString())),
-  //         Divider()
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  void _goFormPage(BuildContext context, String idProducto) {
-    Navigator.pushNamed(context, 'invernaderos/form',
-        arguments:
-            idProducto == null || idProducto.isEmpty ? null : idProducto);
+  Widget _createItem(Invernadero invernadero) {
+    return Container(
+      child: Column(
+        children: <Widget>[
+          ListTile(
+              title: Text(invernadero.nombreInvernadero),
+              trailing: Icon(
+                Icons.keyboard_arrow_right,
+                color: Colors.green,
+              ),
+              onTap: () =>
+                  _goFormPage(context, invernadero.idInvernadero.toString())),
+          Divider()
+        ],
+      ),
+    );
   }
 
-  // showError(BuildContext context) {
-  //   Future.delayed(
-  //       Duration.zero,
-  //       () => _customAlertDialog.errorAlert(
-  //             context: context,
-  //           ));
-  //   return Container();
-  // }
+  void _goFormPage(BuildContext context, String idInvernadero) {
+    Navigator.pushNamed(context, 'invernaderos/form',
+        arguments: idInvernadero == null || idInvernadero.isEmpty
+            ? null
+            : idInvernadero);
+  }
 }
