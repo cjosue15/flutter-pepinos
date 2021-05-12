@@ -57,20 +57,26 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
 
   getVenta(String idVenta) async {
     try {
-      setState(() {
-        isLoading = true;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = true;
+        });
+      }
       _venta = await _ventasProvider.getOneVenta(idVenta: _idVenta);
       _ventaDetalle = _venta.ventaDetalles[0];
       _pagos = _venta.ventaPagos;
       getTotalPagos(_pagos);
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
       print(e);
     }
   }

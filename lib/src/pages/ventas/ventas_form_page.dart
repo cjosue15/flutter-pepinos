@@ -62,11 +62,13 @@ class _VentasFormState extends State<VentasForm> {
       final unidadDeMedidas = await _dropdownProvider.getUnidadMedidasCombo();
       _campanias = await _dropdownProvider.getCampaniasCombo();
 
-      setState(() {
-        _clientes = clientes;
-        _invernaderos = invernaderos;
-        _unidadDeMedidas = unidadDeMedidas;
-      });
+      if (mounted) {
+        setState(() {
+          _clientes = clientes;
+          _invernaderos = invernaderos;
+          _unidadDeMedidas = unidadDeMedidas;
+        });
+      }
     }).catchError((error) {
       print('errooorrr');
       print(error);
