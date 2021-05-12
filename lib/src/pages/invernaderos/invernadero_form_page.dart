@@ -18,7 +18,7 @@ class _InvernaderoPageFormState extends State<InvernaderoPageForm> {
   InvernaderoProvider _invernaderoProvider = new InvernaderoProvider();
   CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
   List<Product> _productos = [];
-  Invernadero _invernadero;
+  Invernadero _invernadero = new Invernadero();
   bool _isSaving = false;
   bool _isLoading = false;
   bool _hasError = false;
@@ -33,7 +33,6 @@ class _InvernaderoPageFormState extends State<InvernaderoPageForm> {
           _isLoading = true;
         });
       try {
-        final productosJson = await _dropdownProvider.getProductosCombo();
         if (ModalRoute.of(context).settings.arguments != null) {
           _idInvernadero = ModalRoute.of(context).settings.arguments;
           this._invernadero = await this
@@ -41,6 +40,7 @@ class _InvernaderoPageFormState extends State<InvernaderoPageForm> {
               .getInvernadero(this._idInvernadero);
           _nameController.text = this._invernadero.nombreInvernadero;
         }
+        final productosJson = await _dropdownProvider.getProductosCombo();
 
         this._productos = productosJson
             .map<Product>((item) => Product(
