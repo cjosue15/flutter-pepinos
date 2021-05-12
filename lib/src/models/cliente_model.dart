@@ -45,3 +45,28 @@ class Cliente {
         "id_estado": idEstado
       };
 }
+
+ClienteFilter clienteFilterFromJson(String str) =>
+    ClienteFilter.fromJson(json.decode(str));
+
+String clienteFilterToJson(ClienteFilter data) => json.encode(data.toJson());
+
+class ClienteFilter {
+  int pagina;
+  int filas;
+
+  ClienteFilter({
+    this.pagina = 1,
+    this.filas = 10,
+  });
+
+  factory ClienteFilter.fromJson(Map<String, dynamic> json) => ClienteFilter(
+        pagina: json["pagina"],
+        filas: json["filas"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "pagina": pagina,
+        "filas": filas,
+      };
+}
