@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pepinos/src/models/paginacion_model.dart';
 
-// typedef ItemBuilder<T> = Widget Function(T item, int index);
-
 class InfiniteListView<T> extends StatefulWidget {
   final Widget Function(BuildContext context, T item, int index) itemBuilder;
   final void Function(int) onScroll;
@@ -11,9 +9,12 @@ class InfiniteListView<T> extends StatefulWidget {
   final bool isFetching;
   final bool isInitialLoading;
   final bool hasInitialError;
+  final bool hasErrorAfterFetching;
   final int length;
+  final BuildContext context;
 
   InfiniteListView({
+    this.context,
     this.itemBuilder,
     this.onScroll,
     this.paginacion,
@@ -22,6 +23,7 @@ class InfiniteListView<T> extends StatefulWidget {
     this.isInitialLoading = false,
     this.length,
     this.hasInitialError = false,
+    this.hasErrorAfterFetching = false,
   });
 
   @override
@@ -35,30 +37,20 @@ class _InfiniteListViewState<T> extends State<InfiniteListView<T>> {
   @override
   void initState() {
     super.initState();
-    // print(widget.data);
     _scrollController.addListener(_handleController);
   }
 
   @override
   void didUpdateWidget(InfiniteListView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // if (widget.data != oldWidget.data) {
-    //   print('cambio?');
-    // }
-    // print(oldWidget.data.length);
-    // // print(widget.data.length);
     if (widget.length != oldWidget.length && oldWidget.data.length > 0) {
       _scrollController.animateTo(_scrollController.position.pixels + 50,
           duration: Duration(milliseconds: 800), curve: Curves.fastOutSlowIn);
     }
 
-    //     if (widget.length != oldWidget.length &&
-    //     oldWidget.data.length > 0 &&
-    //     !widget.isInitialLoading) {
-    //   print('cambio length');
-    //   // _scrollController.animateTo(_scrollController.position.pixels + 50,
-    //   //     duration: Duration(milliseconds: 800), curve: Curves.fastOutSlowIn);
-    // }
+    if (widget.hasErrorAfterFetching) {
+      showSnackBarError();
+    }
   }
 
   @override
@@ -88,21 +80,7 @@ class _InfiniteListViewState<T> extends State<InfiniteListView<T>> {
                       : NoDataPage(
                           title: 'No data',
                         ),
-
-              // ListView(
-              //   controller: _scrollController,
-              //   children: <Widget>[
-              //     for (var i = 0; i < widget.data.length; i++)
-              //       widget.itemBuilder(context, widget.data[i], i),
-              //     hasDataAfterScroll
-              //         ? Container()
-              //         : ListTile(
-              //             title: Text('No data'),
-              //           )
-              //   ],
-              // ),
-              // hasDataAfterScroll ? Container() : Text('No more data'),
-              _createLoading()
+              _createLoading(),
             ],
           );
   }
@@ -121,7 +99,7 @@ class _InfiniteListViewState<T> extends State<InfiniteListView<T>> {
         : Container();
   }
 
-  _handleController() async {
+  void _handleController() async {
     if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
       if (widget.paginacion.pagSiguiente == null || widget.isFetching) {
@@ -138,6 +116,35 @@ class _InfiniteListViewState<T> extends State<InfiniteListView<T>> {
       }
       widget.onScroll(widget.paginacion.pagSiguiente);
     }
+  }
+
+  void showSnackBarError() {
+    Future.delayed(
+      Duration.zero,
+      () async {
+        final snackBar = SnackBar(
+          backgroundColor: Colors.red,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(
+                Icons.warning,
+                color: Colors.white,
+              ),
+              SizedBox(
+                height: 10.0,
+              ),
+              Text('Ops ocurrio un error!')
+            ],
+          ),
+          duration: Duration(seconds: 2),
+        );
+
+        ScaffoldMessenger.of(widget.context).showSnackBar(snackBar);
+
+        print('has error after fetching');
+      },
+    );
   }
 }
 
