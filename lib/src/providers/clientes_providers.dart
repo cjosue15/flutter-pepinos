@@ -7,13 +7,11 @@ import 'package:pepinos/src/utils/api.dart';
 
 class ClienteProvider {
   Dio dio = new Dio();
-  CancelToken token = CancelToken();
 
   Future<dynamic> createClient(Cliente cliente) async {
     try {
       final response = await dio.post(
         '$apiUrl/api/clientes',
-        cancelToken: token,
         data: clienteToJson(cliente),
         options: Options(headers: {
           HttpHeaders.contentTypeHeader: 'application/json',
@@ -30,7 +28,7 @@ class ClienteProvider {
       {ClienteFilter clienteFilter}) async {
     try {
       final response = await dio.get('$apiUrl/api/clientes',
-          cancelToken: token, queryParameters: clienteFilter.toJson());
+          queryParameters: clienteFilter.toJson());
       final dynamic decodedData = response.data;
       final clientes = new Cliente.fromJsonList(jsonList: decodedData["data"]);
       final paginacion = new Paginacion.fromJson(decodedData["paginacion"]);
@@ -42,8 +40,7 @@ class ClienteProvider {
 
   Future<Cliente> getClient(String idCliente) async {
     try {
-      final response =
-          await dio.get('$apiUrl/api/clientes/$idCliente', cancelToken: token);
+      final response = await dio.get('$apiUrl/api/clientes/$idCliente');
       Map<String, dynamic> decodedData = response.data;
       final Cliente cliente = Cliente.fromJson(decodedData);
       return cliente;
@@ -57,7 +54,6 @@ class ClienteProvider {
     try {
       final response = await dio.put(
         '$apiUrl/api/clientes/${cliente.idCliente}',
-        cancelToken: token,
         data: clienteToJson(cliente),
         options: Options(headers: {
           HttpHeaders.contentTypeHeader: 'application/json',

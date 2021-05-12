@@ -8,10 +8,8 @@ import 'package:pepinos/src/utils/api.dart';
 
 class InvernaderoProvider {
   Dio dio;
-  CancelToken token;
   InvernaderoProvider() {
     dio = new Dio();
-    token = CancelToken();
   }
 
   Future<String> updateInvernadero(
@@ -19,7 +17,6 @@ class InvernaderoProvider {
     try {
       final response = await dio.put(
         '$apiUrl/api/invernaderos/$idInvernadero',
-        cancelToken: token,
         data: invernaderoToJsonRequestPut(invernadero),
         options: Options(headers: {
           HttpHeaders.contentTypeHeader: 'application/json',
@@ -37,7 +34,6 @@ class InvernaderoProvider {
     try {
       final response = await dio.get(
         '$apiUrl/api/invernaderos/$idInvernadero',
-        cancelToken: token,
       );
       final decodedData = response.data;
       final invernadero = Invernadero.fromJson(decodedData);
@@ -52,7 +48,6 @@ class InvernaderoProvider {
     try {
       final response = await dio.post(
         '$apiUrl/api/invernaderos',
-        cancelToken: token,
         data: invernaderoToJson(invernadero),
         options: Options(headers: {
           HttpHeaders.contentTypeHeader: 'application/json',
@@ -69,7 +64,7 @@ class InvernaderoProvider {
       {InvernaderoFilter invernaderoFilter}) async {
     try {
       final response = await dio.get('$apiUrl/api/invernaderos',
-          cancelToken: token, queryParameters: invernaderoFilter.toJson());
+          queryParameters: invernaderoFilter.toJson());
       final dynamic decodedData = response.data;
       final invernaderos =
           new Invernadero.fromJsonList(jsonList: decodedData["data"]);

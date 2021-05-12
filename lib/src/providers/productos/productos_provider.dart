@@ -7,13 +7,11 @@ import 'package:pepinos/src/utils/api.dart';
 
 class ProductosProvider {
   Dio dio = new Dio();
-  CancelToken token = CancelToken();
 
   Future<dynamic> createProduct(Producto producto) async {
     try {
       final response = await dio.post(
         '$apiUrl/api/productos',
-        cancelToken: token,
         data: productoToJson(producto),
         options: Options(headers: {
           HttpHeaders.contentTypeHeader: 'application/json',
@@ -30,7 +28,7 @@ class ProductosProvider {
       {ProductoFilter productoFilter}) async {
     try {
       final response = await dio.get('$apiUrl/api/productos',
-          cancelToken: token, queryParameters: productoFilter.toJson());
+          queryParameters: productoFilter.toJson());
       final dynamic decodedData = response.data;
       final productos =
           new Producto.fromJsonList(jsonList: decodedData["data"]);
@@ -43,8 +41,9 @@ class ProductosProvider {
 
   Future<Producto> getProduct(String idProducto) async {
     try {
-      final response = await dio.get('$apiUrl/api/productos/$idProducto',
-          cancelToken: token);
+      final response = await dio.get(
+        '$apiUrl/api/productos/$idProducto',
+      );
       Map<String, dynamic> decodedData = response.data;
       final Producto producto = Producto.fromJson(decodedData);
       return producto;
@@ -58,7 +57,6 @@ class ProductosProvider {
     try {
       final response = await dio.put(
         '$apiUrl/api/productos/${producto.idProducto}',
-        cancelToken: token,
         data: productoToJson(producto),
         options: Options(headers: {
           HttpHeaders.contentTypeHeader: 'application/json',

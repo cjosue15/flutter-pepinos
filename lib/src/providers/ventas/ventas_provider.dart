@@ -8,7 +8,6 @@ import 'package:pepinos/src/utils/api.dart';
 
 class VentasProvider {
   Dio dio = new Dio();
-  CancelToken token = CancelToken();
   final Options _options = Options(headers: {
     HttpHeaders.contentTypeHeader: 'application/json',
   });
@@ -17,7 +16,6 @@ class VentasProvider {
     try {
       final response = await dio.post(
         '$apiUrl/api/ventas',
-        cancelToken: token,
         data: ventaToJson(venta),
         options: _options,
       );
@@ -36,7 +34,6 @@ class VentasProvider {
     try {
       final response = await dio.get(
         '$apiUrl/api/ventas/filtros',
-        cancelToken: token,
       );
       final decodedData = response.data;
       for (final item in decodedData['campanias']) {
@@ -75,8 +72,7 @@ class VentasProvider {
 
   Future<Venta> getOneVenta({String idVenta}) async {
     try {
-      final response =
-          await dio.get('$apiUrl/api/ventas/$idVenta', cancelToken: token);
+      final response = await dio.get('$apiUrl/api/ventas/$idVenta');
       final dynamic decodedData = response.data;
       final venta = new Venta.fromJson(decodedData['venta']);
       return venta;
@@ -88,7 +84,7 @@ class VentasProvider {
   Future<String> updatePago({VentaPago pago, String numeroComprobante}) async {
     try {
       final response = await dio.put('$apiUrl/api/ventas/$numeroComprobante',
-          cancelToken: token, data: ventaPagoToJson(pago), options: _options);
+          data: ventaPagoToJson(pago), options: _options);
       final decodedData = response.data;
       return decodedData['message'];
     } catch (e) {
@@ -99,7 +95,7 @@ class VentasProvider {
   Future<Map<String, dynamic>> getVentas({VentaFilter ventaFilter}) async {
     try {
       final response = await dio.get('$apiUrl/api/ventas',
-          cancelToken: token, queryParameters: ventaFilter.toJson());
+          queryParameters: ventaFilter.toJson());
       final dynamic decodedData = response.data;
       final ventas = new Venta.fromJsonList(jsonList: decodedData["data"]);
       final paginacion = new Paginacion.fromJson(decodedData["paginacion"]);
