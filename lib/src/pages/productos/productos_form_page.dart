@@ -39,8 +39,8 @@ class _ProductsFormPageState extends State<ProductsFormPage> {
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _descripcionController.dispose();
+    _nameController?.dispose();
+    _descripcionController?.dispose();
     super.dispose();
   }
 
