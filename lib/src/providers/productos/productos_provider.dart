@@ -8,22 +8,6 @@ import 'package:pepinos/src/utils/api.dart';
 class ProductosProvider {
   Dio dio = new Dio();
   CancelToken token = CancelToken();
-  List<Producto> _productos = [];
-
-  final _productosStreamController = new StreamController<List<Producto>>();
-
-  Function(List<Producto>) get productosSink =>
-      _productosStreamController.sink.add;
-
-  Function(dynamic) get productosAddError =>
-      _productosStreamController.sink.addError;
-
-  Stream<List<Producto>> get productosStream =>
-      _productosStreamController.stream;
-
-  void disposeStream() {
-    _productosStreamController?.close();
-  }
 
   Future<dynamic> createProduct(Producto producto) async {
     try {
@@ -42,19 +26,17 @@ class ProductosProvider {
     }
   }
 
-  Future<Map<String, dynamic>> getAllProducts({int pagina = 1}) async {
+  Future<Map<String, dynamic>> getAllProducts(
+      {ProductoFilter productoFilter}) async {
     try {
       final response = await dio.get('$apiUrl/api/productos',
-          cancelToken: token, queryParameters: {'pagina': pagina, 'filas': 10});
+          cancelToken: token, queryParameters: productoFilter.toJson());
       final dynamic decodedData = response.data;
       final productos =
           new Producto.fromJsonList(jsonList: decodedData["data"]);
       final paginacion = new Paginacion.fromJson(decodedData["paginacion"]);
-      _productos.addAll(productos.items);
-      productosSink(_productos);
-      return {'ventas': productos.items, 'paginacion': paginacion};
+      return {'productos': productos.items, 'paginacion': paginacion};
     } catch (e) {
-      productosAddError(e);
       return e;
     }
   }
