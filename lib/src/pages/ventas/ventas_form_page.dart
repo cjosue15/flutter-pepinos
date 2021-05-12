@@ -83,7 +83,6 @@ class _VentasFormState extends State<VentasForm> {
   @override
   void dispose() {
     super.dispose();
-    _ventasProvider.token.cancel();
     _precioController.dispose();
     _cantidadController.dispose();
     _montoPagadoController.dispose();

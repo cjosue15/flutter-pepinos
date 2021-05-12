@@ -51,7 +51,6 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
   @override
   void dispose() {
     super.dispose();
-    _ventasProvider.token.cancel();
     _montoController.dispose();
   }
 

@@ -41,7 +41,6 @@ class _ProductsFormPageState extends State<ProductsFormPage> {
   void dispose() {
     _nameController.dispose();
     _descripcionController.dispose();
-    _productosProvider.token.cancel();
     super.dispose();
   }
 

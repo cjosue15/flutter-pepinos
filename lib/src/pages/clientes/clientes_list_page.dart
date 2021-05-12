@@ -47,7 +47,6 @@ class _ClientesListPageState extends State<ClientesListPage> {
   @override
   void dispose() {
     super.dispose();
-    _clientProvider.token.cancel();
   }
 
   @override

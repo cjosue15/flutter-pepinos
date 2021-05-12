@@ -74,9 +74,6 @@ class _InvernaderoPageFormState extends State<InvernaderoPageForm> {
   @override
   void dispose() {
     _nameController?.dispose();
-    _dropdownProvider.token.cancel();
-    _invernaderoProvider?.disposeStream();
-    _invernaderoProvider.token.cancel();
     super.dispose();
   }
 
