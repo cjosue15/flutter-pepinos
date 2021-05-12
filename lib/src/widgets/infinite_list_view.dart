@@ -61,7 +61,6 @@ class _InfiniteListViewState<T> extends State<InfiniteListView<T>> {
 
   @override
   Widget build(BuildContext context) {
-    print(widget.hasInitialError);
     return widget.isInitialLoading
         ? Center(
             child: CircularProgressIndicator(),
@@ -103,7 +102,6 @@ class _InfiniteListViewState<T> extends State<InfiniteListView<T>> {
     if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
       if (widget.paginacion.pagSiguiente == null || widget.isFetching) {
-        print('not more data');
         setState(() {
           hasDataAfterScroll = false;
         });
@@ -112,7 +110,6 @@ class _InfiniteListViewState<T> extends State<InfiniteListView<T>> {
         setState(() {
           hasDataAfterScroll = true;
         });
-        print('has more data');
       }
       widget.onScroll(widget.paginacion.pagSiguiente);
     }
@@ -141,8 +138,6 @@ class _InfiniteListViewState<T> extends State<InfiniteListView<T>> {
         );
 
         ScaffoldMessenger.of(widget.context).showSnackBar(snackBar);
-
-        print('has error after fetching');
       },
     );
   }
