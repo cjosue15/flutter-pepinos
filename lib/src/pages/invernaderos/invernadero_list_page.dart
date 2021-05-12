@@ -71,7 +71,7 @@ class _InvernaderoListPageState extends State<InvernaderoListPage> {
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () => _goFormPage(context, '3'),
+        onPressed: () => _goFormPage(context, null),
       ),
     );
   }
