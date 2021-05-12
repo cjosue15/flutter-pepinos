@@ -389,7 +389,7 @@ class _VentasFormState extends State<VentasForm> {
           text: 'Aceptar',
           backFunction: () {
             Navigator.pop(context);
-            Navigator.pushReplacementNamed(context, '/');
+            Navigator.pushReplacementNamed(context, 'ventas');
           });
       setState(() {
         _isSaving = false;

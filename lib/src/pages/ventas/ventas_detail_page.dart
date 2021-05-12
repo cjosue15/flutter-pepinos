@@ -109,7 +109,7 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
   }
 
   Future<bool> _moveToScreen(BuildContext context) async {
-    Navigator.pushReplacementNamed(context, "/");
+    Navigator.pushReplacementNamed(context, 'ventas');
     return Future.value(true);
   }
 
