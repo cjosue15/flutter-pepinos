@@ -3,31 +3,15 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:pepinos/src/models/invernadero.dart';
+import 'package:pepinos/src/models/paginacion_model.dart';
 import 'package:pepinos/src/utils/api.dart';
 
 class InvernaderoProvider {
   Dio dio;
   CancelToken token;
-  List<Invernadero> _invernaderos = [];
   InvernaderoProvider() {
     dio = new Dio();
     token = CancelToken();
-  }
-
-  final _invernaderosStreamController =
-      new StreamController<List<Invernadero>>();
-
-  Function(List<Invernadero>) get invernaderosSink =>
-      _invernaderosStreamController.sink.add;
-
-  Function(dynamic) get invernaderosAddError =>
-      _invernaderosStreamController.sink.addError;
-
-  Stream<List<Invernadero>> get invernaderosStream =>
-      _invernaderosStreamController.stream;
-
-  void disposeStream() {
-    _invernaderosStreamController?.close();
   }
 
   Future<String> updateInvernadero(
@@ -76,6 +60,21 @@ class InvernaderoProvider {
       );
       final decodedData = response.data;
       return decodedData['message'];
+    } catch (e) {
+      return e;
+    }
+  }
+
+  Future<Map<String, dynamic>> getAllInvernaderos(
+      {InvernaderoFilter invernaderoFilter}) async {
+    try {
+      final response = await dio.get('$apiUrl/api/invernaderos',
+          cancelToken: token, queryParameters: invernaderoFilter.toJson());
+      final dynamic decodedData = response.data;
+      final invernaderos =
+          new Invernadero.fromJsonList(jsonList: decodedData["data"]);
+      final paginacion = new Paginacion.fromJson(decodedData["paginacion"]);
+      return {'invernaderos': invernaderos.items, 'paginacion': paginacion};
     } catch (e) {
       return e;
     }
