@@ -40,3 +40,28 @@ class Producto {
         "id_estado": idEstado,
       };
 }
+
+ProductoFilter productoFilterFromJson(String str) =>
+    ProductoFilter.fromJson(json.decode(str));
+
+String productoFilterToJson(ProductoFilter data) => json.encode(data.toJson());
+
+class ProductoFilter {
+  int pagina;
+  int filas;
+
+  ProductoFilter({
+    this.pagina = 1,
+    this.filas = 10,
+  });
+
+  factory ProductoFilter.fromJson(Map<String, dynamic> json) => ProductoFilter(
+        pagina: json["pagina"],
+        filas: json["filas"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "pagina": pagina,
+        "filas": filas,
+      };
+}
