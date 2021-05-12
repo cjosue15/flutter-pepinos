@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:pepinos/src/models/cliente_model.dart';
 import 'package:pepinos/src/models/paginacion_model.dart';
 import 'package:pepinos/src/providers/clientes_providers.dart';
-import 'package:pepinos/src/widgets/alert_dialog.dart';
 import 'package:pepinos/src/widgets/drawer_menu.dart';
+import 'package:pepinos/src/widgets/infinite_list_view.dart';
 
 class ClientesListPage extends StatefulWidget {
   @override
@@ -12,31 +12,42 @@ class ClientesListPage extends StatefulWidget {
 
 class _ClientesListPageState extends State<ClientesListPage> {
   final ClienteProvider _clientProvider = new ClienteProvider();
-  final CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
-  ScrollController _scrollController = new ScrollController();
   Paginacion _paginacion = new Paginacion();
-  int _nextPage = 1;
-  bool _isLoading = false;
+  ClienteFilter _clienteFilter = new ClienteFilter();
+  bool _isFetching = false;
+  bool _isInitialLoading = false;
+  bool _hasInitialError = false;
+  bool _hasErrorAfterFetching = false;
+  List<Cliente> _clientes = [];
+
   @override
   void initState() {
     super.initState();
-    _clientProvider.getClientsList(pagina: _nextPage).then((response) {
+    setState(() {
+      _isInitialLoading = true;
+      _hasInitialError = false;
+    });
+    _clientProvider
+        .getClientsList(clienteFilter: _clienteFilter)
+        .then((response) {
       setState(() {
+        _clientes = response['clientes'];
         _paginacion = response['paginacion'];
+        _isInitialLoading = false;
+        _hasInitialError = false;
       });
     }).catchError((error) {
-      print(error);
-      _clientProvider.disposeStream();
+      setState(() {
+        _isInitialLoading = false;
+        _hasInitialError = true;
+      });
     });
-
-    _scrollController.addListener(_handleController);
   }
 
   @override
   void dispose() {
     super.dispose();
     _clientProvider.token.cancel();
-    _clientProvider.disposeStream();
   }
 
   @override
@@ -45,11 +56,37 @@ class _ClientesListPageState extends State<ClientesListPage> {
       appBar: AppBar(
         title: Text('Clientes'),
       ),
-      body: Stack(
-        children: <Widget>[
-          _createFutureBuilderClient(context),
-          _createLoading()
-        ],
+      body: InfiniteListView<Cliente>(
+        context: context,
+        data: _clientes,
+        hasErrorAfterFetching: _hasErrorAfterFetching,
+        hasInitialError: _hasInitialError,
+        isFetching: _isFetching,
+        isInitialLoading: _isInitialLoading,
+        length: _clientes.length,
+        onScroll: (int pagina) async {
+          setState(() {
+            _hasErrorAfterFetching = false;
+            _isFetching = true;
+          });
+          try {
+            _clienteFilter.pagina = pagina;
+            final response = await _clientProvider.getClientsList(
+                clienteFilter: _clienteFilter);
+            _clientes.addAll(response['clientes']);
+            _paginacion = response['paginacion'];
+            _hasErrorAfterFetching = false;
+            _isFetching = false;
+            setState(() {});
+          } catch (e) {
+            setState(() {
+              _hasErrorAfterFetching = true;
+              _isFetching = false;
+            });
+          }
+        },
+        paginacion: _paginacion,
+        itemBuilder: (context, item, index) => _createItem(context, item),
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
@@ -57,35 +94,6 @@ class _ClientesListPageState extends State<ClientesListPage> {
       ),
       drawer: DrawerMenu(),
     );
-  }
-
-  Widget _createFutureBuilderClient(BuildContext context) {
-    return StreamBuilder(
-      stream: _clientProvider.ventasStream,
-      builder: (BuildContext context, AsyncSnapshot<List<Cliente>> snapshot) {
-        return snapshot.hasData
-            ? _createListClient(snapshot.data)
-            : snapshot.hasError
-                ? _customAlertDialog.showErrorInBuilders(context)
-                : Center(child: CircularProgressIndicator());
-      },
-    );
-  }
-
-  Widget _createListClient(List<Cliente> clientes) {
-    return clientes.length > 0
-        ? ListView.builder(
-            controller: _scrollController,
-            itemCount: clientes.length,
-            itemBuilder: (BuildContext context, int index) {
-              return _createItem(context, clientes[index]);
-            },
-          )
-        : Center(
-            child: Text(
-            'No hay resultados para clientes.',
-            style: TextStyle(fontSize: 20),
-          ));
   }
 
   Widget _createItem(BuildContext context, Cliente cliente) {
@@ -104,46 +112,6 @@ class _ClientesListPageState extends State<ClientesListPage> {
         ],
       ),
     );
-  }
-
-  Widget _createLoading() {
-    return _isLoading
-        ? Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-                Center(child: CircularProgressIndicator()),
-                SizedBox(
-                  height: 20.0,
-                )
-              ])
-        : Container();
-  }
-
-  void _handleController() async {
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
-      if (_paginacion.pagSiguiente == null) return;
-      _nextPage++;
-      setState(() {
-        _isLoading = true;
-      });
-      try {
-        final response =
-            await _clientProvider.getClientsList(pagina: _nextPage);
-        setState(() {
-          _paginacion = response['paginacion'];
-          _isLoading = false;
-        });
-        _scrollController.animateTo(_scrollController.position.pixels + 50,
-            duration: Duration(milliseconds: 450), curve: Curves.fastOutSlowIn);
-      } catch (e) {
-        _clientProvider.disposeStream();
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
   }
 }
 
