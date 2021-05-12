@@ -41,10 +41,10 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _lastNameController.dispose();
-    _puestoController.dispose();
-    _lugarController.dispose();
+    _nameController?.dispose();
+    _lastNameController?.dispose();
+    _puestoController?.dispose();
+    _lugarController?.dispose();
     super.dispose();
   }
 
