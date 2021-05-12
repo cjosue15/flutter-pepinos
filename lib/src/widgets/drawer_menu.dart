@@ -19,10 +19,11 @@ class DrawerMenu extends StatefulWidget {
 
 class _DrawerMenuState extends State<DrawerMenu> {
   final List<DrawerItem> _listViewData = [
+    DrawerItem(title: 'Home', icon: Icon(Icons.bar_chart), navigateTo: '/'),
     DrawerItem(
         title: 'Ventas',
         icon: Icon(Icons.shopping_cart_rounded),
-        navigateTo: '/'),
+        navigateTo: 'ventas'),
     DrawerItem(
         title: 'Clientes', icon: Icon(Icons.person), navigateTo: 'clientes'),
     DrawerItem(
