@@ -14,17 +14,21 @@ class InfiniteListView<T> extends StatefulWidget {
   final BuildContext context;
 
   InfiniteListView({
+    Key key,
     this.context,
-    this.itemBuilder,
+    @required this.itemBuilder,
     this.onScroll,
-    this.paginacion,
-    this.data,
+    @required this.paginacion,
+    @required this.data,
     this.isFetching = false,
     this.isInitialLoading = false,
-    this.length,
+    @required this.length,
     this.hasInitialError = false,
     this.hasErrorAfterFetching = false,
-  });
+  })  : assert(data != null, 'init data must not be null'),
+        assert(itemBuilder != null, 'itemBuilder must not be null'),
+        assert(length != null, 'length must not be null'),
+        super(key: key);
 
   @override
   _InfiniteListViewState createState() => _InfiniteListViewState<T>();
