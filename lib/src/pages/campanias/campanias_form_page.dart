@@ -67,6 +67,7 @@ class _CampaniaFormPageState extends State<CampaniaFormPage> {
 
   Widget _createFinishDate() {
     return DatePickerForm(
+      labelText: 'Fecha de cierre',
       onSaved: (date) {
         print(date);
         _date = date;
