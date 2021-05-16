@@ -301,8 +301,12 @@ class _VentasPageState extends State<VentasPage> {
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // Text(
+                //   'Boleta ${venta.numeroComprobante}',
+                //   style: TextStyle(fontWeight: FontWeight.bold),
+                // ),
                 Text(
-                  'Boleta ${venta.numeroComprobante}',
+                  '${venta.cliente}',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
@@ -311,7 +315,7 @@ class _VentasPageState extends State<VentasPage> {
                 )
               ],
             ),
-            subtitle: Text(venta.cliente + ' - ' + venta.estado),
+            subtitle: Text('${venta.numeroComprobante}  ${venta.estado}'),
             onTap: () => _goVenta(context, venta.numeroComprobante),
             trailing: Icon(
               venta.idEstado == Estado.getValue(EstadoEnum.PENDIENTE) ||
