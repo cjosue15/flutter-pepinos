@@ -21,3 +21,8 @@ String dateTimeToString({DateTime date, DateFormat dateFormat}) {
   DateFormat _dateFormat = dateFormat ?? DateFormat('dd/MM/yyyy');
   return _dateFormat.format(date);
 }
+
+DateTime dateStringToDateTime({String date, DateFormat dateFormat}) {
+  DateFormat _dateFormat = dateFormat ?? DateFormat('dd/MM/yyyy');
+  return _dateFormat.parse(date);
+}
