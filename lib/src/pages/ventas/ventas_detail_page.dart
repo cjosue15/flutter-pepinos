@@ -151,14 +151,20 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
     TextStyle textStyle = new TextStyle(
       fontSize: 18.0,
     );
+
+    TextStyle textStyleRed = new TextStyle(fontSize: 18.0, color: Colors.red);
+
     TextStyle montosTextStyle =
         new TextStyle(fontSize: 20.0, fontWeight: FontWeight.w900);
 
-    return Row(
+    TextStyle montosTextStyleRed = new TextStyle(
+        fontSize: 20.0, fontWeight: FontWeight.w900, color: Colors.red);
+
+    final totales = Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Container(
-          padding: EdgeInsets.all(30.0),
+          padding: EdgeInsets.all(20.0),
           child: Column(
             children: <Widget>[
               Text('Monto Total', style: textStyle),
@@ -169,7 +175,7 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
           ),
         ),
         Container(
-          padding: EdgeInsets.all(30.0),
+          padding: EdgeInsets.all(20.0),
           child: Column(
             children: <Widget>[
               Text('Monto Pagado', style: textStyle),
@@ -179,6 +185,33 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
             ],
           ),
         )
+      ],
+    );
+
+    final porPagar = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Container(
+          padding: EdgeInsets.only(bottom: 20.0),
+          child: Column(
+            children: <Widget>[
+              Text('Monto Faltante', style: textStyleRed),
+              SizedBox(height: 10.0),
+              Text(
+                  'S/ ${(_venta.montoTotal - _venta.montoPagado).toStringDouble(2)}',
+                  style: montosTextStyleRed),
+            ],
+          ),
+        )
+      ],
+    );
+
+    return Column(
+      children: <Widget>[
+        totales,
+        _venta.idEstado == Estado.getValue(EstadoEnum.PENDIENTE)
+            ? porPagar
+            : Container()
       ],
     );
   }
