@@ -7,11 +7,13 @@ class DatePickerForm extends StatefulWidget {
   final String Function(String) validator;
   final void Function(String) onSaved;
   final void Function(String) onDateChanged;
+  final DateTime firstDate;
   final DateTime initialDate;
 
   DatePickerForm({
     this.labelText = 'Fecha',
     this.validator,
+    this.firstDate,
     this.onSaved,
     @required this.onDateChanged,
     this.initialDate,
@@ -68,11 +70,15 @@ class _DatePickerFormState extends State<DatePickerForm> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
+    final DateTime date =
+        widget.firstDate != null && _selectedDate.isBefore(widget.firstDate)
+            ? widget.firstDate
+            : _selectedDate;
     final DateTime picked = await showDatePicker(
       locale: const Locale("es", "PE"),
       context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now(),
+      initialDate: date,
+      firstDate: widget.firstDate ?? DateTime.now(),
       lastDate: DateTime(DateTime.now().year + 5),
     );
     if (picked != null && picked != widget.initialDate) {
