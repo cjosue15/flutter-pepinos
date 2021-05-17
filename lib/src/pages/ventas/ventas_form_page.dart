@@ -10,6 +10,7 @@ import 'package:pepinos/src/widgets/date_picker_form.dart';
 import 'package:pepinos/src/widgets/dropdown.dart';
 import 'package:pepinos/src/utils/utils_validatos.dart' as validators;
 import 'package:flutter_masked_text/flutter_masked_text.dart';
+import 'package:pepinos/src/utils/number_format.dart';
 
 class VentasForm extends StatefulWidget {
   @override
@@ -22,6 +23,7 @@ class _VentasFormState extends State<VentasForm> {
 
   Venta _venta = new Venta();
   VentaDetalle _ventaDetalle = new VentaDetalle();
+  List<VentaDetalle> _items = [];
   final CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
   final _formKey = GlobalKey<FormState>();
   List<DropdownItem> _clientes = [];
@@ -35,9 +37,19 @@ class _VentasFormState extends State<VentasForm> {
   DropdownItem selectedUnidadMedida;
   DropdownItem selectedCampania;
   bool _isSaving = false;
-  String _idVenta;
-  String prevPrecio = '';
-  String prevCantidad = '';
+  double prevMontoTotal = 0;
+
+  int currentStep = 0;
+  bool complete = false;
+  StateSetter _setState;
+  // keys
+  List<GlobalKey<FormState>> _formKeys = [
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>(),
+    GlobalKey<FormState>()
+  ];
+
+  List<bool> stepStates = [null, null, null];
 
   // controllers
   final _precioController = MoneyMaskedTextController(
@@ -70,13 +82,9 @@ class _VentasFormState extends State<VentasForm> {
         });
       }
     }).catchError((error) {
-      print('errooorrr');
       print(error);
-      print('fin errooorrr');
     });
 
-    _precioController.addListener(_resetMontoPagado);
-    _cantidadController.addListener(_resetMontoPagado);
     _montoPagadoController.addListener(_checkMontoPagado);
   }
 
@@ -90,58 +98,262 @@ class _VentasFormState extends State<VentasForm> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          '${_idVenta == null || _idVenta.isEmpty ? 'Nueva' : 'Editar'} venta',
+    List<Step> steps = [
+      Step(
+        title: const Text('Venta'),
+        isActive: currentStep == 0 ? true : false,
+        state: stepStates[0] == null
+            ? StepState.editing
+            : stepStates[0]
+                ? StepState.complete
+                : StepState.error,
+        content: Form(
+          key: _formKeys[0],
+          child: Column(
+            children: <Widget>[
+              _createDropdownCliente(),
+              SizedBox(height: ConstantsForm.height),
+              _createDateVenta(),
+              SizedBox(height: ConstantsForm.height),
+              _createDropdownCampania(),
+            ],
+          ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Container(
-          padding: EdgeInsets.all(ConstantsForm.padding),
-          margin: EdgeInsets.only(top: ConstantsForm.margin),
-          child: Form(
-            key: _formKey,
-            child: Column(
+      Step(
+        isActive: currentStep == 1 ? true : false,
+        state: StepState.editing,
+        title: const Text('Items'),
+        content: Column(
+          children: <Widget>[
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton(
+                onPressed: () => _additem(null),
+                child: Text('Agregar item'),
+              ),
+            ),
+            SizedBox(
+              height: 20.0,
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: _items.length,
+              itemBuilder: (context, index) => Column(
+                children: <Widget>[
+                  ListTile(
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Text('${_items[index].nombreProducto}'),
+                        Text(
+                          'S/ ${(_items[index].cantidad * _items[index].precioUnitario).toStringDouble(2)}',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    subtitle: Text(_items[index].nombreInvernadero),
+                    trailing: Icon(
+                      Icons.keyboard_arrow_right,
+                      color: Colors.green,
+                    ),
+                    onTap: () {
+                      _getItem(index);
+                      _additem(_items[index].idItem);
+                    },
+                  ),
+                  Divider()
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      Step(
+        isActive: currentStep == 2 ? true : false,
+        state: StepState.editing,
+        title: const Text('Resumen'),
+        subtitle: const Text("Error!"),
+        content: Form(
+          key: _formKeys[2],
+          child: Column(
+            children: <Widget>[
+              _createTotal(),
+              SizedBox(height: ConstantsForm.height),
+              _createMontoPagado(),
+              SizedBox(height: ConstantsForm.height),
+              _createEstado()
+            ],
+          ),
+        ),
+      ),
+    ];
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text(
+          'Nueva venta',
+        ),
+      ),
+      body: Stepper(
+        type: StepperType.horizontal,
+        steps: steps,
+        currentStep: currentStep,
+        // onStepContinue: next,
+        onStepTapped: (step) => goTo(step),
+        // onStepCancel: cancel,
+        controlsBuilder: (context, {onStepCancel, onStepContinue}) => Column(
+          children: <Widget>[
+            SizedBox(
+              height: 20.0,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                _createSubtitle(title: 'DETALLE'),
-                SizedBox(height: ConstantsForm.height),
-                _createDropdownCliente(),
-                SizedBox(height: ConstantsForm.height),
-                _createDateVenta(),
-                SizedBox(height: ConstantsForm.height),
-                _createDropdownInvernadero(),
-                SizedBox(height: ConstantsForm.height),
-                _createDropdownProducto(),
-                SizedBox(height: ConstantsForm.height),
-                _createDropdownCampania(),
-                SizedBox(height: ConstantsForm.height),
-                _createDropdownUnidadMedida(),
-                SizedBox(height: ConstantsForm.height),
-                Row(
-                  children: <Widget>[
-                    _createCantidad(),
-                    _createPrecio(),
-                  ],
+                currentStep != 0
+                    ? ElevatedButton(
+                        style: ElevatedButton.styleFrom(primary: Colors.grey),
+                        onPressed: cancel,
+                        child: Text('Regresar'),
+                      )
+                    : Container(),
+                ElevatedButton(
+                  onPressed: _isSaving ? null : next,
+                  child: Text(currentStep == 2 ? 'Guardar' : 'Siguiente'),
                 ),
-                SizedBox(height: ConstantsForm.height),
-                _createSubtitle(title: 'RESUMEN'),
-                SizedBox(height: ConstantsForm.height),
-                _createTotal(),
-                SizedBox(height: ConstantsForm.height),
-                _createMontoPagado(),
-                SizedBox(height: ConstantsForm.height),
-                _createEstado(),
-                SizedBox(height: ConstantsForm.height),
-                _crearButton(context),
-                SizedBox(height: ConstantsForm.height),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );
   }
+
+  void _additem(int idItem) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Container(
+            width: MediaQuery.of(context).size.width,
+            child: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setStateAlert) {
+                _setState = setStateAlert;
+                return SingleChildScrollView(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        _createDropdownInvernadero(),
+                        SizedBox(height: ConstantsForm.height),
+                        _createDropdownProducto(),
+                        SizedBox(height: ConstantsForm.height),
+                        _createDropdownUnidadMedida(),
+                        SizedBox(height: ConstantsForm.height),
+                        _createCantidad(),
+                        SizedBox(height: ConstantsForm.height),
+                        _createPrecio(),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(primary: Colors.red),
+              child: Text('Cancelar'),
+              onPressed: () {
+                _resetVentaDetalle();
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: Text(idItem != null ? 'Editar' : 'Agregar'),
+              onPressed: () {
+                if (!_formKey.currentState.validate()) return;
+                if (idItem == null) {
+                  // nuevo item
+                  _ventaDetalle.idItem = _items.length + 1;
+                  _items.add(_ventaDetalle);
+                } else {
+                  // editar
+                  int ventaIndex =
+                      _items.indexWhere((venta) => venta.idItem == idItem);
+                  _items[ventaIndex] = _ventaDetalle;
+                }
+                _resetVentaDetalle();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _getItem(int index) async {
+    _ventaDetalle = _items[index];
+    _productos = await _dropdownProvider
+        .getProductosByInvernaderoCombo(_ventaDetalle.idInvernadero);
+    selectedInvernadero = DropdownItem(
+        id: _ventaDetalle.idInvernadero, text: _ventaDetalle.nombreInvernadero);
+    selectedProducto = DropdownItem(
+        id: _ventaDetalle.idProducto, text: _ventaDetalle.nombreProducto);
+    selectedUnidadMedida = DropdownItem(
+        id: _ventaDetalle.idUnidadMedida, text: _ventaDetalle.unidadMedida);
+    _precioController.updateValue(_ventaDetalle.precioUnitario);
+    _cantidadController.text = _ventaDetalle.cantidad.toString();
+    setState(() {});
+    _setState(() {});
+  }
+
+  void next() {
+    //validate step 1 and 3
+    if (_formKeys[currentStep].currentState != null &&
+        !_formKeys[currentStep].currentState.validate()) {
+      stepStates[currentStep] = false;
+      setState(() {});
+      return;
+    } else {
+      stepStates[currentStep] = true;
+      setState(() {});
+    }
+
+    if (_formKeys[currentStep].currentState != null)
+      _formKeys[currentStep].currentState.save();
+
+    // validate step 2
+    if (currentStep + 1 == 2 && _items.length == 0) return;
+
+    if (currentStep + 1 == 2) {
+      getTotalPagos();
+    }
+
+    currentStep + 1 != 3
+        ? goTo(currentStep + 1)
+        : setState(() => complete = true);
+
+    if (complete) {
+      _submit(context);
+    }
+  }
+
+  void cancel() {
+    if (currentStep > 0) {
+      goTo(currentStep - 1);
+    }
+  }
+
+  void goTo(int step) {
+    setState(() => currentStep = step);
+  }
+
+  // cabecera
 
   Widget _createDropdownCliente() {
     return AppDropdownInput(
@@ -164,24 +376,6 @@ class _VentasFormState extends State<VentasForm> {
     );
   }
 
-  Widget _createDropdownInvernadero() {
-    return AppDropdownInput(
-      hintText: "Invernadero",
-      options: _invernaderos,
-      value: selectedInvernadero,
-      onChanged: (DropdownItem idInvernadero) async {
-        final productos = await _dropdownProvider
-            .getProductosByInvernaderoCombo(idInvernadero.id);
-        setState(() {
-          _productos = productos;
-        });
-        selectedInvernadero = idInvernadero;
-        _ventaDetalle.idInvernadero = idInvernadero.id;
-      },
-      validator: (value) => value == null ? 'Ingrese un invernadero' : null,
-    );
-  }
-
   Widget _createDropdownCampania() {
     return AppDropdownInput(
       hintText: "Campaña",
@@ -195,6 +389,28 @@ class _VentasFormState extends State<VentasForm> {
     );
   }
 
+  // items de lista
+
+  Widget _createDropdownInvernadero() {
+    return AppDropdownInput(
+      hintText: "Invernadero",
+      options: _invernaderos,
+      value: selectedInvernadero,
+      onChanged: (DropdownItem invernadero) async {
+        final productos = await _dropdownProvider
+            .getProductosByInvernaderoCombo(invernadero.id);
+        selectedProducto = null;
+        _productos = productos;
+        selectedInvernadero = invernadero;
+        _ventaDetalle.idInvernadero = invernadero.id;
+        _ventaDetalle.nombreInvernadero = invernadero.text;
+        setState(() {});
+        _setState(() {});
+      },
+      validator: (value) => value == null ? 'Ingrese un invernadero' : null,
+    );
+  }
+
   Widget _createDropdownProducto() {
     return AppDropdownInput(
       hintText: "Producto",
@@ -203,6 +419,9 @@ class _VentasFormState extends State<VentasForm> {
       onChanged: (DropdownItem producto) {
         selectedProducto = producto;
         _ventaDetalle.idProducto = producto.id;
+        _ventaDetalle.nombreProducto = producto.text;
+        setState(() {});
+        _setState(() {});
       },
       validator: (value) => value == null ? 'Ingrese un producto' : null,
     );
@@ -216,6 +435,9 @@ class _VentasFormState extends State<VentasForm> {
       onChanged: (DropdownItem unidad) {
         selectedUnidadMedida = unidad;
         _ventaDetalle.idUnidadMedida = unidad.id;
+        _ventaDetalle.unidadMedida = unidad.text;
+        setState(() {});
+        _setState(() {});
       },
       validator: (value) =>
           value == null ? 'Ingrese la unidad de medida' : null,
@@ -223,67 +445,58 @@ class _VentasFormState extends State<VentasForm> {
   }
 
   Widget _createCantidad() {
-    return Expanded(
-      child: Container(
-        margin: EdgeInsets.only(right: 12.5),
-        child: TextFormField(
-          controller: _cantidadController,
-          keyboardType: TextInputType.numberWithOptions(decimal: false),
-          decoration: InputDecoration(
-            labelText: 'Cantidad',
-            border: OutlineInputBorder(),
-          ),
-          onSaved: (value) => _ventaDetalle.cantidad = int.parse(value),
-          onChanged: (String value) {
-            setState(() {
-              _ventaDetalle.cantidad = int.parse(value.isEmpty ? '0' : value);
-            });
-          },
-          validator: (value) => validators.isTextEmpty(
-              value: value, length: 1, message: 'Ingrese la cantidad'),
-        ),
+    return TextFormField(
+      controller: _cantidadController,
+      keyboardType: TextInputType.numberWithOptions(decimal: false),
+      decoration: InputDecoration(
+        labelText: 'Cantidad',
+        border: OutlineInputBorder(),
       ),
+      onSaved: (value) => _ventaDetalle.cantidad = int.parse(value),
+      onChanged: (String value) {
+        setState(() {
+          _ventaDetalle.cantidad = int.parse(value.isEmpty ? '0' : value);
+        });
+      },
+      validator: (value) => validators.isTextEmpty(
+          value: value, length: 1, message: 'Ingrese la cantidad'),
     );
   }
 
   Widget _createPrecio() {
     final double _price = _precioController.numberValue;
-    return Expanded(
-      child: Container(
-        margin: EdgeInsets.only(left: 12.5),
-        child: TextFormField(
-          controller: _precioController,
-          keyboardType: TextInputType.numberWithOptions(decimal: true),
-          decoration: InputDecoration(
-            labelText: 'Precio',
-            border: OutlineInputBorder(),
-          ),
-          onSaved: (value) =>
-              _ventaDetalle.precioUnitario = _precioController.numberValue,
-          onChanged: (String value) {
-            setState(() {
-              _ventaDetalle.precioUnitario = _precioController.numberValue;
-            });
-          },
-          validator: (value) => validators.isPriceGreaterThanZero(
-              value: _price.toString(), message: 'Ingrese el precio'),
-        ),
+    return TextFormField(
+      controller: _precioController,
+      keyboardType: TextInputType.numberWithOptions(decimal: true),
+      decoration: InputDecoration(
+        labelText: 'Precio',
+        border: OutlineInputBorder(),
       ),
+      onSaved: (value) =>
+          _ventaDetalle.precioUnitario = _precioController.numberValue,
+      onChanged: (String value) {
+        setState(() {
+          _ventaDetalle.precioUnitario = _precioController.numberValue;
+        });
+      },
+      validator: (value) => validators.isPriceGreaterThanZero(
+          value: _price.toString(), message: 'Ingrese el precio'),
     );
   }
 
+  // resumen
+
   Widget _createMontoPagado() {
-    int cantidad = _ventaDetalle.cantidad ?? 0;
-    double precio = _ventaDetalle.precioUnitario ?? 0.0;
-    final double _monto = _montoPagadoController.numberValue;
+    final montoTotal = _venta.montoTotal ?? 0;
+    // final double _monto = _montoPagadoController.numberValue;
     return TextFormField(
       controller: _montoPagadoController,
-      enabled: cantidad == 0 || precio == 0 ? false : true,
+      enabled: montoTotal == null || montoTotal == 0 ? false : true,
       keyboardType: TextInputType.numberWithOptions(decimal: true),
       decoration: InputDecoration(
           labelText: 'Monto pagado',
           border: OutlineInputBorder(),
-          helperText: cantidad == 0 || precio == 0
+          helperText: montoTotal == 0
               ? null
               : 'El monto debe ser menor al monto total.',
           helperStyle: TextStyle(fontWeight: FontWeight.bold)),
@@ -294,38 +507,16 @@ class _VentasFormState extends State<VentasForm> {
           _venta.montoPagado = _montoPagadoController.numberValue;
         });
       },
-      validator: (value) => validators.isPriceGreaterThanZero(
-          value: _monto.toString(), message: 'Ingrese el monto'),
-    );
-  }
-
-  Widget _createSubtitle({String title}) {
-    return Column(
-      children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        Divider(
-          color: Colors.black54,
-        )
-      ],
+      // validator: (value) => validators.isPriceGreaterThanZero(
+      //     value: _monto.toString(), message: 'Ingrese el monto'),
     );
   }
 
   Widget _createTotal() {
-    int cantidad = _ventaDetalle.cantidad ?? 0;
-    double precio = _ventaDetalle.precioUnitario ?? 0.0;
     return Align(
       alignment: Alignment.centerLeft,
       child: Text(
-        'Monto total : S/ ${(cantidad * precio).toStringAsFixed(2)}',
+        'Monto total : S/ ${(_venta.montoTotal ?? 0).toStringAsFixed(2)}',
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
@@ -335,8 +526,7 @@ class _VentasFormState extends State<VentasForm> {
   }
 
   Widget _createEstado() {
-    double montoTotal =
-        (_ventaDetalle.cantidad ?? 0) * (_ventaDetalle.precioUnitario ?? 0.0);
+    double montoTotal = _venta.montoTotal ?? 0;
     String estado = montoTotal == (_venta.montoPagado ?? 0) && montoTotal != 0
         ? 'CANCELADO'
         : 'PENDIENTE';
@@ -359,6 +549,8 @@ class _VentasFormState extends State<VentasForm> {
     );
   }
 
+  //
+
   Widget _crearButton(BuildContext context) {
     return ElevatedButton.icon(
       onPressed: _isSaving ? null : () => _submit(context),
@@ -371,14 +563,10 @@ class _VentasFormState extends State<VentasForm> {
     String response;
 
     try {
-      if (!_formKey.currentState.validate()) return;
       setState(() {
         _isSaving = true;
       });
-      _formKey.currentState.save();
-      _ventaDetalle.idItem = 1;
-      _venta.montoTotal = _ventaDetalle.precioUnitario * _ventaDetalle.cantidad;
-      _venta.ventaDetalles = [_ventaDetalle];
+      _venta.ventaDetalles = _items;
       response = await _ventasProvider.createVenta(_venta);
 
       _customAlertDialog.confirmAlert(
@@ -393,8 +581,8 @@ class _VentasFormState extends State<VentasForm> {
       setState(() {
         _isSaving = false;
       });
+      // print(ventaToJson(_venta));
     } catch (e) {
-      print(e);
       _customAlertDialog.errorAlert(
         context: context,
         title: 'Ops!',
@@ -407,21 +595,39 @@ class _VentasFormState extends State<VentasForm> {
     }
   }
 
-  void _resetMontoPagado() {
-    if (prevPrecio != _precioController.text ||
-        prevCantidad != _cantidadController.text) {
-      prevPrecio = _precioController.text;
-      prevCantidad = _cantidadController.text;
+  void getTotalPagos() {
+    final total = _items.length > 0
+        ? _items.fold(
+            0,
+            (previousValue, element) =>
+                previousValue + (element.cantidad * element.precioUnitario))
+        : 0.0;
+    _venta.montoTotal = total;
+
+    if (prevMontoTotal != total) {
+      prevMontoTotal = total;
       _montoPagadoController.updateValue(0);
+      _venta.montoPagado = 0;
     }
   }
 
   void _checkMontoPagado() {
-    final montoTotal =
-        (_ventaDetalle.cantidad ?? 0) * (_ventaDetalle.precioUnitario ?? 0);
+    final montoTotal = _venta.montoTotal ?? 0;
     final montoPagado = _montoPagadoController.numberValue;
     if (montoPagado > montoTotal) {
       _montoPagadoController.updateValue(0);
     }
+  }
+
+  _resetVentaDetalle() {
+    _ventaDetalle = new VentaDetalle();
+    selectedInvernadero = null;
+    selectedProducto = null;
+    selectedUnidadMedida = null;
+    _precioController.updateValue(0);
+    _cantidadController.text = '';
+    _productos = [];
+    setState(() {});
+    _setState(() {});
   }
 }
