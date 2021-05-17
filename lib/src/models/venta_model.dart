@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:pepinos/src/models/dropdown_items.dart';
-import 'package:pepinos/src/models/paginacion_model.dart';
 import 'package:pepinos/src/utils/date_format.dart';
 
 Venta ventaFromJson(String str) => Venta.fromJson(json.decode(str));
