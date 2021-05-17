@@ -13,6 +13,7 @@ class Venta {
     this.cliente,
     this.montoTotal,
     this.montoPagado,
+    this.observaciones,
     this.idCampania,
     this.nombreCampania,
     this.idEstado,
@@ -27,6 +28,7 @@ class Venta {
   String cliente;
   double montoTotal;
   double montoPagado;
+  String observaciones;
   int idCampania;
   String nombreCampania;
   int idEstado;
@@ -44,11 +46,9 @@ class Venta {
         montoPagado: json["monto_pagado"]?.toDouble(),
         idCampania: json["id_campania"],
         nombreCampania: json["nombre_campania"],
+        observaciones: json["observaciones"],
         idEstado: json["id_estado"],
         estado: json["estado"],
-        // fechaVenta: json.containsKey("fecha_venta")
-        //     ? DateTime.parse(json["fecha_venta"])
-        //     : null,
         fechaVenta: json["fecha_venta"] != null
             ? dateFormFromDatabase(json["fecha_venta"])
             : null,
@@ -78,6 +78,7 @@ class Venta {
         "fecha_venta": dateFormatToDatabase(fechaVenta),
         "monto_pagado": montoPagado,
         "detalle_pago": "Primer pago",
+        "observaciones": observaciones,
         // "id_estado": idEstado,
         // "cliente": cliente,
         // "nombre_campania": nombreCampania,
