@@ -122,59 +122,80 @@ class _VentasFormState extends State<VentasForm> {
       ),
       Step(
         isActive: currentStep == 1 ? true : false,
-        state: StepState.editing,
+        state: stepStates[1] == null
+            ? StepState.editing
+            : stepStates[1]
+                ? StepState.complete
+                : StepState.error,
         title: const Text('Items'),
         content: Column(
           children: <Widget>[
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton(
-                onPressed: () => _additem(null),
-                child: Text('Agregar item'),
-              ),
-            ),
             SizedBox(
               height: 20.0,
             ),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: _items.length,
-              itemBuilder: (context, index) => Column(
-                children: <Widget>[
-                  ListTile(
-                    title: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text('${_items[index].nombreProducto}'),
-                        Text(
-                          'S/ ${(_items[index].cantidad * _items[index].precioUnitario).toStringDouble(2)}',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    subtitle: Text(_items[index].nombreInvernadero),
-                    trailing: Icon(
-                      Icons.keyboard_arrow_right,
-                      color: Colors.green,
-                    ),
-                    onTap: () {
-                      _getItem(index);
-                      _additem(_items[index].idItem);
-                    },
+            _items.length > 0
+                ? ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: _items.length,
+                    itemBuilder: (context, index) => Column(
+                          children: <Widget>[
+                            ListTile(
+                              title: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: <Widget>[
+                                  Text('${_items[index].nombreProducto}'),
+                                  Text(
+                                    'S/ ${(_items[index].cantidad * _items[index].precioUnitario).toStringDouble(2)}',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              subtitle: Text(_items[index].nombreInvernadero),
+                              leading: IconButton(
+                                onPressed: () {
+                                  print(_items[index]);
+                                  _items.removeWhere((venta) =>
+                                      _items[index].idItem == venta.idItem);
+                                  setState(() {});
+                                },
+                                icon: Icon(
+                                  Icons.delete,
+                                  color: Colors.redAccent,
+                                ),
+                              ),
+                              // trailing: Icon(
+                              //   Icons.keyboard_arrow_right,
+                              //   color: Colors.green,
+                              // ),
+                              onTap: () {
+                                _getItem(index);
+                                _additem(_items[index].idItem);
+                              },
+                            ),
+                            Divider()
+                          ],
+                        ))
+                : Text(
+                    'Debe agregar minimo 1 item.',
+                    style: TextStyle(color: Colors.red, fontSize: 16.0),
                   ),
-                  Divider()
-                ],
-              ),
+            SizedBox(
+              height: 20.0,
             ),
           ],
         ),
       ),
       Step(
         isActive: currentStep == 2 ? true : false,
-        state: StepState.editing,
+        state: stepStates[2] == null
+            ? StepState.editing
+            : stepStates[2]
+                ? StepState.complete
+                : StepState.error,
         title: const Text('Resumen'),
-        subtitle: const Text("Error!"),
         content: Form(
           key: _formKeys[2],
           child: Column(
@@ -200,9 +221,7 @@ class _VentasFormState extends State<VentasForm> {
         type: StepperType.horizontal,
         steps: steps,
         currentStep: currentStep,
-        // onStepContinue: next,
         onStepTapped: (step) => goTo(step),
-        // onStepCancel: cancel,
         controlsBuilder: (context, {onStepCancel, onStepContinue}) => Column(
           children: <Widget>[
             SizedBox(
@@ -227,6 +246,10 @@ class _VentasFormState extends State<VentasForm> {
           ],
         ),
       ),
+      floatingActionButton: currentStep == 1
+          ? FloatingActionButton(
+              child: Icon(Icons.add), onPressed: () => _additem(null))
+          : Container(),
     );
   }
 
@@ -276,6 +299,7 @@ class _VentasFormState extends State<VentasForm> {
               child: Text(idItem != null ? 'Editar' : 'Agregar'),
               onPressed: () {
                 if (!_formKey.currentState.validate()) return;
+                _formKey.currentState.save();
                 if (idItem == null) {
                   // nuevo item
                   _ventaDetalle.idItem = _items.length + 1;
@@ -328,7 +352,16 @@ class _VentasFormState extends State<VentasForm> {
       _formKeys[currentStep].currentState.save();
 
     // validate step 2
-    if (currentStep + 1 == 2 && _items.length == 0) return;
+    if (currentStep + 1 == 2) {
+      if (_items.length == 0) {
+        stepStates[currentStep] = false;
+        setState(() {});
+        return;
+      } else {
+        stepStates[currentStep] = true;
+        setState(() {});
+      }
+    }
 
     if (currentStep + 1 == 2) {
       getTotalPagos();
@@ -454,9 +487,9 @@ class _VentasFormState extends State<VentasForm> {
       ),
       onSaved: (value) => _ventaDetalle.cantidad = int.parse(value),
       onChanged: (String value) {
-        setState(() {
-          _ventaDetalle.cantidad = int.parse(value.isEmpty ? '0' : value);
-        });
+        _ventaDetalle.cantidad = int.parse(value.isEmpty ? '0' : value);
+        setState(() {});
+        _setState(() {});
       },
       validator: (value) => validators.isTextEmpty(
           value: value, length: 1, message: 'Ingrese la cantidad'),
@@ -475,9 +508,9 @@ class _VentasFormState extends State<VentasForm> {
       onSaved: (value) =>
           _ventaDetalle.precioUnitario = _precioController.numberValue,
       onChanged: (String value) {
-        setState(() {
-          _ventaDetalle.precioUnitario = _precioController.numberValue;
-        });
+        _ventaDetalle.precioUnitario = _precioController.numberValue;
+        setState(() {});
+        _setState(() {});
       },
       validator: (value) => validators.isPriceGreaterThanZero(
           value: _price.toString(), message: 'Ingrese el precio'),
@@ -550,14 +583,6 @@ class _VentasFormState extends State<VentasForm> {
   }
 
   //
-
-  Widget _crearButton(BuildContext context) {
-    return ElevatedButton.icon(
-      onPressed: _isSaving ? null : () => _submit(context),
-      icon: Icon(Icons.save),
-      label: _isSaving ? Text('Guardando') : Text('Guardar'),
-    );
-  }
 
   void _submit(BuildContext context) async {
     String response;
