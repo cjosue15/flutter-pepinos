@@ -18,12 +18,11 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
   final _formKey = GlobalKey<FormState>();
   final CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
   Venta _venta;
-  VentaDetalle _ventaDetalle = new VentaDetalle();
+  List<VentaDetalle> _items = [];
   String _idVenta = '';
   VentasProvider _ventasProvider = new VentasProvider();
   List<VentaPago> _pagos = [];
   bool isLoading = false;
-  // double _totalPagado = 0;
   DateTime _dateSelected = DateTime.now();
   VentaPago _ventaPago = new VentaPago();
 
@@ -62,7 +61,7 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
         });
       }
       _venta = await _ventasProvider.getOneVenta(idVenta: _idVenta);
-      _ventaDetalle = _venta.ventaDetalles[0];
+      _items = _venta.ventaDetalles;
       _pagos = _venta.ventaPagos;
       getTotalPagos(_pagos);
       if (mounted) {
@@ -98,6 +97,8 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
                     _createTotales(),
                     _createSubtitle(title: 'DETALLES'),
                     _createDetails(),
+                    _createSubtitle(title: 'ITEMS'),
+                    _createListItems(),
                     _createSubtitle(title: 'PAGOS', icon: Icons.add_circle),
                     _createListPagos()
                   ],
@@ -223,38 +224,23 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
         children: <Widget>[
           Row(
             children: <Widget>[
-              _createItem(title: 'Cliente', subtitle: _venta.cliente),
-              _createItem(
-                  title: 'Invernadero',
-                  subtitle: _ventaDetalle.nombreInvernadero)
-            ],
-          ),
-          SizedBox(height: 30.0),
-          Row(
-            children: <Widget>[
-              _createItem(title: 'Fecha', subtitle: _venta.fechaVenta),
-              _createItem(title: 'Campaña', subtitle: _venta.nombreCampania)
+              _createItem(title: 'Cliente', subtitle: _venta.cliente ?? ''),
+              _createItem(title: 'Fecha', subtitle: _venta.fechaVenta ?? ''),
             ],
           ),
           SizedBox(height: 30.0),
           Row(
             children: <Widget>[
               _createItem(
-                  title: 'Producto', subtitle: _ventaDetalle.nombreProducto),
-              _createItem(
-                  title: 'Unidad de Medida',
-                  subtitle: _ventaDetalle.unidadMedida)
+                  title: 'Campaña', subtitle: _venta.nombreCampania ?? ''),
+              _createItem(title: 'Estado', subtitle: _venta.estado ?? ''),
             ],
           ),
           SizedBox(height: 30.0),
           Row(
             children: <Widget>[
               _createItem(
-                  title: 'Cantidad',
-                  subtitle: _ventaDetalle.cantidad.toString()),
-              _createItem(
-                  title: 'Precio Unitario',
-                  subtitle: _ventaDetalle.precioUnitario.toString())
+                  title: 'Observacion', subtitle: _venta.observaciones ?? '')
             ],
           )
         ],
@@ -270,15 +256,151 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
         children: <Widget>[
           Text(
             title,
-            style: TextStyle(fontSize: 17.0, fontWeight: FontWeight.w400),
+            style: TextStyle(fontSize: 17.0, fontWeight: FontWeight.w900),
           ),
           SizedBox(height: 5.0),
           Text(
             subtitle,
-            style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w900),
+            style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w400),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _createListItems() {
+    return ListView.builder(
+      padding: EdgeInsets.symmetric(horizontal: 15.0),
+      itemCount: _items.length,
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemBuilder: (BuildContext context, int index) => ListTile(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  _items[index].nombreProducto,
+                  // style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+                Text(
+                  _items[index].nombreInvernadero,
+                  style: TextStyle(fontSize: 14.0),
+                )
+              ],
+            ),
+            Column(
+              children: <Widget>[
+                Text(
+                    'S/ ${(_items[index].cantidad * _items[index].precioUnitario).toStringDouble(2)}'),
+              ],
+            )
+          ],
+        ),
+        // subtitle: Text(_items[index].nombreInvernadero),
+        onTap: () => _showItem(_items[index]),
+        trailing: Icon(
+          Icons.keyboard_arrow_right,
+          color: Colors.green,
+        ),
+      ),
+    );
+  }
+
+  void _showItem(VentaDetalle item) {
+    final TextStyle textStyle = TextStyle(fontWeight: FontWeight.bold);
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          // title: Text('Item'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Text(
+                    'Producto: ',
+                    style: textStyle,
+                  ),
+                  Text(item.nombreProducto)
+                ],
+              ),
+              SizedBox(
+                height: 10.0,
+              ),
+              Row(
+                children: <Widget>[
+                  Text(
+                    'Invernadero: ',
+                    style: textStyle,
+                  ),
+                  Text(item.nombreInvernadero)
+                ],
+              ),
+              SizedBox(
+                height: 10.0,
+              ),
+              Row(
+                children: <Widget>[
+                  Text(
+                    'Unidad M: ',
+                    style: textStyle,
+                  ),
+                  Text(item.unidadMedida)
+                ],
+              ),
+              SizedBox(
+                height: 10.0,
+              ),
+              Row(
+                children: <Widget>[
+                  Text(
+                    'Precio: ',
+                    style: textStyle,
+                  ),
+                  Text('S/ ${item.precioUnitario.toStringDouble(2)}')
+                ],
+              ),
+              SizedBox(
+                height: 10.0,
+              ),
+              Row(
+                children: <Widget>[
+                  Text(
+                    'Cantidad: ',
+                    style: textStyle,
+                  ),
+                  Text(item.cantidad.toString())
+                ],
+              ),
+              SizedBox(
+                height: 10.0,
+              ),
+              Row(
+                children: <Widget>[
+                  Text(
+                    'Total: ',
+                    style: textStyle,
+                  ),
+                  Text(
+                      'S/ ${(item.cantidad * item.precioUnitario).toStringDouble(2)}')
+                ],
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            ElevatedButton(
+              child: Text('Ok'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
