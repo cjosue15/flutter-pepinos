@@ -204,6 +204,8 @@ class _VentasFormState extends State<VentasForm> {
               SizedBox(height: ConstantsForm.height),
               _createMontoPagado(),
               SizedBox(height: ConstantsForm.height),
+              _createObservacion(),
+              SizedBox(height: ConstantsForm.height),
               _createEstado()
             ],
           ),
@@ -545,6 +547,28 @@ class _VentasFormState extends State<VentasForm> {
     );
   }
 
+  Widget _createObservacion() {
+    return TextFormField(
+      keyboardType: TextInputType.multiline,
+      maxLines: null,
+      minLines: 6,
+      decoration: InputDecoration(
+        // labelText: 'Observación',
+        hintText: 'Observación',
+        border: OutlineInputBorder(),
+        helperStyle: TextStyle(fontWeight: FontWeight.bold),
+      ),
+      onSaved: (value) => _venta.observaciones = value,
+      onChanged: (value) {
+        setState(() {
+          _venta.observaciones = value;
+        });
+      },
+      // validator: (value) => validators.isPriceGreaterThanZero(
+      //     value: _monto.toString(), message: 'Ingrese el monto'),
+    );
+  }
+
   Widget _createTotal() {
     return Align(
       alignment: Alignment.centerLeft,
@@ -573,7 +597,7 @@ class _VentasFormState extends State<VentasForm> {
     return Align(
       alignment: Alignment.centerLeft,
       child: Text(
-        'Estado de la venta : S/ $estado',
+        'Estado de la venta : $estado',
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
@@ -586,6 +610,8 @@ class _VentasFormState extends State<VentasForm> {
 
   void _submit(BuildContext context) async {
     String response;
+
+    if (_isSaving) return;
 
     try {
       setState(() {
