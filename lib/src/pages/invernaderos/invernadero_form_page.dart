@@ -174,10 +174,12 @@ class _InvernaderoPageFormState extends State<InvernaderoPageForm> {
   Future<void> _handleSubmit() async {
     String response;
 
-    setState(() {
-      _isSaving = true;
-    });
     try {
+      if (!_formKey.currentState.validate()) return;
+      setState(() {
+        _isSaving = true;
+      });
+      _formKey.currentState.save();
       this._invernadero.productosSeleccionados = this
           ._productos
           .where((producto) => producto.checked)
