@@ -70,6 +70,7 @@ class _DatePickerFormState extends State<DatePickerForm> {
   }
 
   Future<void> _selectDate(BuildContext context) async {
+    final dateNow = DateTime.now();
     final DateTime date =
         widget.firstDate != null && _selectedDate.isBefore(widget.firstDate)
             ? widget.firstDate
@@ -78,7 +79,9 @@ class _DatePickerFormState extends State<DatePickerForm> {
       locale: const Locale("es", "PE"),
       context: context,
       initialDate: date,
-      firstDate: widget.firstDate ?? DateTime.now(),
+      // firstDate: widget.firstDate ?? DateTime(DateTime.now().day - 30),
+      firstDate: widget.firstDate ??
+          DateTime(dateNow.year, dateNow.month - 1, dateNow.day),
       lastDate: DateTime(DateTime.now().year + 5),
     );
     if (picked != null && picked != widget.initialDate) {
