@@ -17,6 +17,8 @@ class _ProductsFormPageState extends State<ProductsFormPage> {
   final CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
   Producto _producto = new Producto();
   bool _isSaving = false;
+  bool _isLoading = false;
+  bool _hasError = false;
 
   // fields
   final _nameController = TextEditingController();
@@ -28,11 +30,23 @@ class _ProductsFormPageState extends State<ProductsFormPage> {
     Future.delayed(Duration.zero).then((_) async {
       if (ModalRoute.of(context).settings.arguments != null) {
         setState(() {
-          _idProducto = ModalRoute.of(context).settings.arguments;
+          _isLoading = true;
+          _hasError = false;
         });
-        _producto = await _productosProvider.getProduct(_idProducto);
-        _nameController.text = _producto.nombreProducto;
-        _descripcionController.text = _producto.descripcion;
+        try {
+          _idProducto = ModalRoute.of(context).settings.arguments;
+          _producto = await _productosProvider.getProduct(_idProducto);
+          _nameController.text = _producto.nombreProducto;
+          _descripcionController.text = _producto.descripcion;
+          _isLoading = false;
+          _hasError = false;
+          setState(() {});
+        } catch (e) {
+          _isLoading = false;
+          _hasError = true;
+          setState(() {});
+          print('Must show an error page');
+        }
       }
     });
   }
@@ -52,27 +66,31 @@ class _ProductsFormPageState extends State<ProductsFormPage> {
           '${_idProducto == null || _idProducto.isEmpty ? 'Nuevo' : 'Editar'} producto',
         ),
       ),
-      body: SingleChildScrollView(
-        child: Container(
-          padding: EdgeInsets.all(ConstantsForm.padding),
-          margin: EdgeInsets.only(top: ConstantsForm.margin),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: <Widget>[
-                _createProductName(),
-                SizedBox(height: ConstantsForm.height),
-                _createProductDescription(),
-                SizedBox(height: ConstantsForm.height),
-                _createCheckBoxState(),
-                SizedBox(height: ConstantsForm.height),
-                _crearButton(context),
-                SizedBox(height: ConstantsForm.height),
-              ],
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : SingleChildScrollView(
+              child: Container(
+                padding: EdgeInsets.all(ConstantsForm.padding),
+                margin: EdgeInsets.only(top: ConstantsForm.margin),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: <Widget>[
+                      _createProductName(),
+                      SizedBox(height: ConstantsForm.height),
+                      _createProductDescription(),
+                      SizedBox(height: ConstantsForm.height),
+                      _createCheckBoxState(),
+                      SizedBox(height: ConstantsForm.height),
+                      _crearButton(context),
+                      SizedBox(height: ConstantsForm.height),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 

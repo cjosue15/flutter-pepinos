@@ -15,6 +15,8 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
   final ClienteProvider _clienteProvider = new ClienteProvider();
   final CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
   bool _isSaving = false;
+  bool _isLoading = false;
+  bool _hasError = false;
   String _idCliente;
   // fielfds
   final _nameController = TextEditingController();
@@ -28,13 +30,26 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
     Future.delayed(Duration.zero).then((_) async {
       if (ModalRoute.of(context).settings.arguments != null) {
         setState(() {
-          _idCliente = ModalRoute.of(context).settings.arguments;
+          _isLoading = true;
+          _hasError = false;
         });
-        cliente = await _clienteProvider.getClient(_idCliente);
-        _nameController.text = cliente.nombres;
-        _lastNameController.text = cliente.apellidos;
-        _puestoController.text = cliente.puesto;
-        _lugarController.text = cliente.lugar;
+        try {
+          _idCliente = ModalRoute.of(context).settings.arguments;
+          cliente = await _clienteProvider.getClient(_idCliente);
+          _nameController.text = cliente.nombres;
+          _lastNameController.text = cliente.apellidos;
+          _puestoController.text = cliente.puesto;
+          _lugarController.text = cliente.lugar;
+          _isLoading = false;
+          _hasError = false;
+          setState(() {});
+        } catch (e) {
+          setState(() {
+            _hasError = true;
+            _isLoading = false;
+          });
+          print('Must show an error page');
+        }
       }
     });
   }
@@ -51,16 +66,21 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-            title: Text(
-                '${_idCliente == null || _idCliente.isEmpty ? 'Nuevo' : 'Editar'} cliente')),
-        body: SingleChildScrollView(
-            child: Container(
+      appBar: AppBar(
+          title: Text(
+              '${_idCliente == null || _idCliente.isEmpty ? 'Nuevo' : 'Editar'} cliente')),
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : SingleChildScrollView(
+              child: Container(
                 padding: EdgeInsets.all(15.0),
                 margin: EdgeInsets.only(top: 20.0),
                 child: Form(
-                    key: formKey,
-                    child: Column(children: <Widget>[
+                  key: formKey,
+                  child: Column(
+                    children: <Widget>[
                       _createName(),
                       SizedBox(height: 25.0),
                       _createLastName(),
@@ -70,7 +90,12 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
                       _createPuesto(),
                       SizedBox(height: 30.0),
                       _crearButton(context)
-                    ])))));
+                    ],
+                  ),
+                ),
+              ),
+            ),
+    );
   }
 
   Widget _createName() {
