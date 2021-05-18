@@ -105,20 +105,29 @@ class _CampaniaFormPageState extends State<CampaniaFormPage> {
       initialDate: _campania.fechaInicio != null
           ? dateStringToDateTime(date: _campania.fechaInicio)
           : null,
-      onSaved: (date) => _campania.fechaInicio = date,
-      onDateChanged: (date) => _campania.fechaInicio = date,
+      onSaved: (date) {
+        setState(() {
+          _campania.fechaInicio = date;
+        });
+      },
+      onDateChanged: (date) {
+        setState(() {
+          _campania.fechaInicio = date;
+          _campania.fechaFin = null;
+        });
+      },
     );
   }
 
   Widget _createFinishDate() {
     return DatePickerForm(
       labelText: 'Fecha de cierre',
-      firstDate: _campania.fechaInicio != null
-          ? dateStringToDateTime(date: _campania.fechaInicio)
-          : null,
-      initialDate: _campania.fechaFin != null
-          ? dateStringToDateTime(date: _campania.fechaFin)
-          : null,
+      firstDate: _campania.fechaInicio == null || _campania.fechaInicio.isEmpty
+          ? null
+          : dateStringToDateTime(date: _campania.fechaInicio),
+      initialDate: _campania.fechaFin == null || _campania.fechaFin.isEmpty
+          ? null
+          : dateStringToDateTime(date: _campania.fechaFin),
       onSaved: (date) => _campania.fechaFin = date,
       onDateChanged: (date) => _campania.fechaFin = date,
     );
