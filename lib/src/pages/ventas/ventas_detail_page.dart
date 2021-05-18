@@ -75,7 +75,7 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
           isLoading = false;
         });
       }
-      print(e);
+      print('Must show an error page');
     }
   }
 

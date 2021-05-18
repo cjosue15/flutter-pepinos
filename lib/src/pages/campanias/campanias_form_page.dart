@@ -39,6 +39,7 @@ class _CampaniaFormPageState extends State<CampaniaFormPage> {
           _isLoading = false;
           if (mounted) setState(() {});
         } catch (e) {
+          print('Must show an error page');
           _isLoading = false;
           if (mounted) setState(() {});
         }
