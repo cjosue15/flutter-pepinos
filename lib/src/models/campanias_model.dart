@@ -47,7 +47,9 @@ class Campania {
   Map<String, dynamic> toJson() => {
         "nombre_campania": nombreCampania,
         "fecha_inicio": dateFormatToDatabase(fechaInicio),
-        "fecha_fin": fechaFin != null ? dateFormatToDatabase(fechaFin) : null,
+        "fecha_fin": fechaFin == null || fechaFin.isEmpty
+            ? null
+            : dateFormatToDatabase(fechaFin),
       };
 }
 
