@@ -37,6 +37,7 @@ class _VentasFormState extends State<VentasForm> {
   DropdownItem selectedUnidadMedida;
   DropdownItem selectedCampania;
   bool _isSaving = false;
+  bool _isLoading = false;
   double prevMontoTotal = 0;
 
   int currentStep = 0;
@@ -68,6 +69,9 @@ class _VentasFormState extends State<VentasForm> {
   @override
   void initState() {
     super.initState();
+    setState(() {
+      _isLoading = true;
+    });
     Future.delayed(Duration.zero).then((_) async {
       final clientes = await _dropdownProvider.getClientsCombo();
       final invernaderos = await _dropdownProvider.getInvernaderosCombo();
@@ -79,10 +83,14 @@ class _VentasFormState extends State<VentasForm> {
           _clientes = clientes;
           _invernaderos = invernaderos;
           _unidadDeMedidas = unidadDeMedidas;
+          _isLoading = false;
         });
       }
     }).catchError((error) {
-      print(error);
+      print('Must show an error page');
+      setState(() {
+        _isLoading = false;
+      });
     });
 
     _montoPagadoController.addListener(_checkMontoPagado);
@@ -219,35 +227,41 @@ class _VentasFormState extends State<VentasForm> {
           'Nueva venta',
         ),
       ),
-      body: Stepper(
-        type: StepperType.horizontal,
-        steps: steps,
-        currentStep: currentStep,
-        onStepTapped: (step) => goTo(step),
-        controlsBuilder: (context, {onStepCancel, onStepContinue}) => Column(
-          children: <Widget>[
-            SizedBox(
-              height: 20.0,
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : Stepper(
+              type: StepperType.horizontal,
+              steps: steps,
+              currentStep: currentStep,
+              onStepTapped: (step) => goTo(step),
+              controlsBuilder: (context, {onStepCancel, onStepContinue}) =>
+                  Column(
+                children: <Widget>[
+                  SizedBox(
+                    height: 20.0,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      currentStep != 0
+                          ? ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  primary: Colors.grey),
+                              onPressed: cancel,
+                              child: Text('Regresar'),
+                            )
+                          : Container(),
+                      ElevatedButton(
+                        onPressed: _isSaving ? null : next,
+                        child: Text(currentStep == 2 ? 'Guardar' : 'Siguiente'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                currentStep != 0
-                    ? ElevatedButton(
-                        style: ElevatedButton.styleFrom(primary: Colors.grey),
-                        onPressed: cancel,
-                        child: Text('Regresar'),
-                      )
-                    : Container(),
-                ElevatedButton(
-                  onPressed: _isSaving ? null : next,
-                  child: Text(currentStep == 2 ? 'Guardar' : 'Siguiente'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
       floatingActionButton: currentStep == 1
           ? FloatingActionButton(
               child: Icon(Icons.add), onPressed: () => _additem(null))
