@@ -168,56 +168,73 @@ class _VentasPageState extends State<VentasPage> {
                               snapshot.hasData ? snapshot.data?.clientes : [];
                           final List<DropdownItem> estados =
                               snapshot.hasData ? snapshot.data?.estados : [];
-                          return Column(
-                            children: <Widget>[
-                              ModalFilter.modalItemWithMarginBottom(
-                                child: AppDropdownInput<DropdownItem>(
-                                  hintText: 'Cliente',
-                                  options: clientes,
-                                  value: _clienteSelected,
-                                  onChanged: (DropdownItem cliente) {
-                                    _clienteSelected = cliente;
-                                    _ventaFilter.idCliente = cliente.id;
-                                  },
-                                ),
-                              ),
-                              ModalFilter.modalItemWithMarginBottom(
-                                child: AppDropdownInput<DropdownItem>(
-                                  hintText: 'Invernadero',
-                                  options: invernaderos,
-                                  value: _invernaderoSelected,
-                                  onChanged: (invernadero) {
-                                    // setState(() {
-                                    _invernaderoSelected = invernadero;
-                                    _ventaFilter.idInvernadero = invernadero.id;
-                                    // });
-                                  },
-                                ),
-                              ),
-                              ModalFilter.modalItemWithMarginBottom(
-                                child: AppDropdownInput<DropdownItem>(
-                                  hintText: 'Estado',
-                                  options: estados,
-                                  value: _estadoSelected,
-                                  onChanged: (estado) {
-                                    _estadoSelected = estado;
-                                    _ventaFilter.idEstado = estado.id;
-                                  },
-                                ),
-                              ),
-                              ModalFilter.modalItemWithMarginBottom(
-                                child: AppDropdownInput<DropdownItem>(
-                                  hintText: 'Camapaña',
-                                  options: campanias,
-                                  value: _campaniaSelected,
-                                  onChanged: (campania) {
-                                    _campaniaSelected = campania;
-                                    _ventaFilter.idCampania = campania.id;
-                                  },
-                                ),
-                              ),
-                            ],
-                          );
+
+                          return snapshot.hasData
+                              ? Column(
+                                  children: <Widget>[
+                                    ModalFilter.modalItemWithMarginBottom(
+                                      child: AppDropdownInput<DropdownItem>(
+                                        hintText: 'Cliente',
+                                        options: clientes,
+                                        value: _clienteSelected,
+                                        onChanged: (DropdownItem cliente) {
+                                          _clienteSelected = cliente;
+                                          _ventaFilter.idCliente = cliente.id;
+                                        },
+                                      ),
+                                    ),
+                                    ModalFilter.modalItemWithMarginBottom(
+                                      child: AppDropdownInput<DropdownItem>(
+                                        hintText: 'Invernadero',
+                                        options: invernaderos,
+                                        value: _invernaderoSelected,
+                                        onChanged: (invernadero) {
+                                          // setState(() {
+                                          _invernaderoSelected = invernadero;
+                                          _ventaFilter.idInvernadero =
+                                              invernadero.id;
+                                          // });
+                                        },
+                                      ),
+                                    ),
+                                    ModalFilter.modalItemWithMarginBottom(
+                                      child: AppDropdownInput<DropdownItem>(
+                                        hintText: 'Estado',
+                                        options: estados,
+                                        value: _estadoSelected,
+                                        onChanged: (estado) {
+                                          _estadoSelected = estado;
+                                          _ventaFilter.idEstado = estado.id;
+                                        },
+                                      ),
+                                    ),
+                                    ModalFilter.modalItemWithMarginBottom(
+                                      child: AppDropdownInput<DropdownItem>(
+                                        hintText: 'Camapaña',
+                                        options: campanias,
+                                        value: _campaniaSelected,
+                                        onChanged: (campania) {
+                                          _campaniaSelected = campania;
+                                          _ventaFilter.idCampania = campania.id;
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : snapshot.hasError
+                                  ? Container(
+                                      margin:
+                                          EdgeInsets.symmetric(vertical: 50.0),
+                                      child: Text(
+                                        'Ops hubo un error cargando los combos',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    )
+                                  : Container(
+                                      margin:
+                                          EdgeInsets.symmetric(vertical: 50.0),
+                                      child: CircularProgressIndicator(),
+                                    );
                         },
                       ),
                       ModalFilter.modalItemWithMarginBottom(
