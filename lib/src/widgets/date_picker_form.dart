@@ -46,6 +46,17 @@ class _DatePickerFormState extends State<DatePickerForm> {
   }
 
   @override
+  void didUpdateWidget(DatePickerForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    Future.delayed(Duration.zero, () async {
+      if (widget.initialDate == null) {
+        textController.text = '';
+      }
+    });
+  }
+
+  @override
   void dispose() {
     super.dispose();
     textController?.dispose();
@@ -81,7 +92,7 @@ class _DatePickerFormState extends State<DatePickerForm> {
       initialDate: date,
       // firstDate: widget.firstDate ?? DateTime(DateTime.now().day - 30),
       firstDate: widget.firstDate ??
-          DateTime(dateNow.year, dateNow.month - 1, dateNow.day),
+          DateTime(dateNow.year, dateNow.month - 6, dateNow.day),
       lastDate: DateTime(DateTime.now().year + 5),
     );
     if (picked != null && picked != widget.initialDate) {
