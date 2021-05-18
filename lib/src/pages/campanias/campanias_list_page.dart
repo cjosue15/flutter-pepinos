@@ -77,7 +77,6 @@ class _CampaniasListPageState extends State<CampaniasListPage> {
 
   @override
   void dispose() {
-    print('bai');
     super.dispose();
   }
 
