@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:pepinos/src/models/campanias_model.dart';
 import 'package:pepinos/src/providers/campanias/campanias_provider.dart';
 import 'package:pepinos/src/utils/date_format.dart';
+import 'package:pepinos/src/utils/navigate.dart';
 import 'package:pepinos/src/utils/utils_validatos.dart' as validators;
 import 'package:pepinos/src/widgets/alert_dialog.dart';
 import 'package:pepinos/src/widgets/date_picker_form.dart';
+import 'package:pepinos/src/widgets/screens/error_screen.dart';
 
 class CampaniaFormPage extends StatefulWidget {
   @override
@@ -19,6 +21,7 @@ class _CampaniaFormPageState extends State<CampaniaFormPage> {
   String _idCampania;
   bool _isSaving = false;
   bool _isLoading = false;
+  bool _hasError = false;
   // fielfds
   final _nameController = TextEditingController();
 
@@ -31,16 +34,19 @@ class _CampaniaFormPageState extends State<CampaniaFormPage> {
         if (mounted)
           setState(() {
             _isLoading = true;
+            _hasError = false;
           });
         _idCampania = ModalRoute.of(context).settings.arguments;
         try {
           _campania = await _campaniasProvider.getCampania(_idCampania);
           _nameController.text = _campania.nombreCampania;
           _isLoading = false;
+          _hasError = false;
           if (mounted) setState(() {});
         } catch (e) {
           print('Must show an error page');
           _isLoading = false;
+          _hasError = true;
           if (mounted) setState(() {});
         }
       }
@@ -56,33 +62,40 @@ class _CampaniaFormPageState extends State<CampaniaFormPage> {
   @override
   Widget build(BuildContext context) {
     final idCampaniaIsEmpty = _idCampania == null || _idCampania.isEmpty;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(idCampaniaIsEmpty ? 'Nueva campaña' : 'Editar campaña'),
-      ),
-      body: !_isLoading
-          ? Container(
-              padding: EdgeInsets.all(15.0),
-              margin: EdgeInsets.only(top: 20.0),
-              child: Form(
-                key: formKey,
-                child: Column(
-                  children: <Widget>[
-                    _createNameCampania(),
-                    SizedBox(height: 25.0),
-                    _createStartDate(),
-                    idCampaniaIsEmpty ? Container() : SizedBox(height: 25.0),
-                    idCampaniaIsEmpty ? Container() : _createFinishDate(),
-                    SizedBox(height: 30.0),
-                    _createButton(context)
-                  ],
-                ),
-              ),
-            )
-          : Center(
-              child: CircularProgressIndicator(),
+    return _hasError
+        ? ErrorScreen(
+            onPressed: () =>
+                navigateWithNamedAndIdArgument(context: context, route: '/'))
+        : Scaffold(
+            appBar: AppBar(
+              title:
+                  Text(idCampaniaIsEmpty ? 'Nueva campaña' : 'Editar campaña'),
             ),
-    );
+            body: !_isLoading
+                ? Container(
+                    padding: EdgeInsets.all(15.0),
+                    margin: EdgeInsets.only(top: 20.0),
+                    child: Form(
+                      key: formKey,
+                      child: Column(
+                        children: <Widget>[
+                          _createNameCampania(),
+                          SizedBox(height: 25.0),
+                          _createStartDate(),
+                          idCampaniaIsEmpty
+                              ? Container()
+                              : SizedBox(height: 25.0),
+                          idCampaniaIsEmpty ? Container() : _createFinishDate(),
+                          SizedBox(height: 30.0),
+                          _createButton(context)
+                        ],
+                      ),
+                    ),
+                  )
+                : Center(
+                    child: CircularProgressIndicator(),
+                  ),
+          );
   }
 
   TextFormField _createNameCampania() {
