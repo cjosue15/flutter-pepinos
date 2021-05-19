@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pepinos/src/models/paginacion_model.dart';
+import 'package:pepinos/src/widgets/screens/error_screen.dart';
+import 'package:pepinos/src/widgets/screens/no_data_screen.dart';
 
 class InfiniteListView<T> extends StatefulWidget {
   final Widget Function(BuildContext context, T item, int index) itemBuilder;
@@ -72,7 +74,9 @@ class _InfiniteListViewState<T> extends State<InfiniteListView<T>> {
         : Stack(
             children: <Widget>[
               widget.hasInitialError
-                  ? ErrorPage()
+                  ? ErrorScreen(
+                      hasAppBar: false,
+                    )
                   : widget.data.length > 0
                       ? ListView.builder(
                           controller: _scrollController,
@@ -80,8 +84,8 @@ class _InfiniteListViewState<T> extends State<InfiniteListView<T>> {
                           itemBuilder: (context, index) => widget.itemBuilder(
                               context, widget.data[index], index),
                         )
-                      : NoDataPage(
-                          title: 'No data',
+                      : NoResultFoundScreen(
+                          hasAppBar: false,
                         ),
               _createLoading(),
             ],
@@ -143,28 +147,6 @@ class _InfiniteListViewState<T> extends State<InfiniteListView<T>> {
 
         ScaffoldMessenger.of(widget.context).showSnackBar(snackBar);
       },
-    );
-  }
-}
-
-class NoDataPage extends StatelessWidget {
-  final String title;
-  NoDataPage({this.title});
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text('${title ?? 'No hay data'}'),
-    );
-  }
-}
-
-class ErrorPage extends StatelessWidget {
-  final String title;
-  ErrorPage({this.title});
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text('${title ?? 'Ops parece que ocurrio un error!'}'),
     );
   }
 }

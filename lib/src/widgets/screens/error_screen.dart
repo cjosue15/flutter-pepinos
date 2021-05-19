@@ -4,19 +4,21 @@ import 'package:pepinos/src/widgets/drawer_menu.dart';
 class ErrorScreen extends StatelessWidget {
   final String text;
   final void Function() onPressed;
+  final bool hasAppBar;
 
-  ErrorScreen({Key key, this.text, this.onPressed}) : super(key: key);
+  ErrorScreen({Key key, this.text, this.onPressed, this.hasAppBar = true})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: DrawerMenu(),
-      appBar: AppBar(),
+      drawer: hasAppBar ? DrawerMenu() : null,
+      appBar: hasAppBar ? AppBar() : null,
       body: Stack(
         fit: StackFit.expand,
         children: [
           Image.asset(
-            "assets/error/error.png",
+            "assets/error-screen.png",
             fit: BoxFit.cover,
           ),
           Positioned(
