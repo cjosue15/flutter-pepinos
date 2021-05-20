@@ -52,7 +52,7 @@ class ProductoFilter {
 
   ProductoFilter({
     this.pagina = 1,
-    this.filas = 10,
+    this.filas = 12,
   });
 
   factory ProductoFilter.fromJson(Map<String, dynamic> json) => ProductoFilter(
