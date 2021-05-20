@@ -63,7 +63,27 @@ class _InvernaderoListPageState extends State<InvernaderoListPage> {
         paginacion: _paginacion,
         data: _invernaderos,
         length: _invernaderos.length,
-        onScroll: (int pagina) {},
+        onScroll: (int pagina) async {
+          setState(() {
+            _hasErrorAfterFetching = false;
+            _isFetching = true;
+          });
+          try {
+            _invernaderoFilter.pagina = pagina;
+            final response = await _invernaderoProvider.getAllInvernaderos(
+                invernaderoFilter: _invernaderoFilter);
+            _invernaderos.addAll(response['invernaderos']);
+            _paginacion = response['paginacion'];
+            _hasErrorAfterFetching = false;
+            _isFetching = false;
+            setState(() {});
+          } catch (e) {
+            setState(() {
+              _hasErrorAfterFetching = true;
+              _isFetching = false;
+            });
+          }
+        },
         hasInitialError: _hasInitialError,
         hasErrorAfterFetching: _hasErrorAfterFetching,
         isInitialLoading: _isInitialLoading,
