@@ -58,6 +58,18 @@ class CampaniasProvider {
     }
   }
 
+  Future<String> deleteCampania(int idCampania) async {
+    try {
+      final response = await dio.delete(
+        '$apiUrl/api/campanias/$idCampania',
+      );
+      final decodedData = response.data;
+      return decodedData['message'];
+    } catch (e) {
+      return e;
+    }
+  }
+
   Future<Map<String, dynamic>> getAllCampanias(
       {CampaniaFilter campaniaFilter}) async {
     try {
