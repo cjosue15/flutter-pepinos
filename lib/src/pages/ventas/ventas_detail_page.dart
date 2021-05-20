@@ -23,6 +23,7 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
   VentasProvider _ventasProvider = new VentasProvider();
   List<VentaPago> _pagos = [];
   bool isLoading = false;
+  bool _isFetching = false;
   DateTime _dateSelected = DateTime.now();
   VentaPago _ventaPago = new VentaPago();
 
@@ -91,21 +92,44 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
             ? Center(
                 child: CircularProgressIndicator(),
               )
-            : SingleChildScrollView(
-                child: Column(
-                  children: <Widget>[
-                    _createTotales(),
-                    _createSubtitle(title: 'DETALLES'),
-                    _createDetails(),
-                    _createSubtitle(title: 'ITEMS'),
-                    _createListItems(),
-                    _createSubtitle(title: 'PAGOS', icon: Icons.add_circle),
-                    _createListPagos()
-                  ],
-                ),
+            : Stack(
+                children: <Widget>[
+                  SingleChildScrollView(
+                    child: Column(
+                      children: <Widget>[
+                        _createTotales(),
+                        _createSubtitle(title: 'DETALLES'),
+                        _createDetails(),
+                        _createSubtitle(title: 'ITEMS'),
+                        _createListItems(),
+                        _createSubtitle(title: 'PAGOS', icon: Icons.add_circle),
+                        _createListPagos()
+                      ],
+                    ),
+                  ),
+                  _createLoading()
+                ],
               ),
       ),
     );
+  }
+
+  Widget _createLoading() {
+    return _isFetching
+        ? Container(
+            color: Colors.white70,
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Center(child: CircularProgressIndicator()),
+                SizedBox(
+                  height: 20.0,
+                )
+              ],
+            ),
+          )
+        : Container();
   }
 
   Future<bool> _moveToScreen(BuildContext context) async {
@@ -414,6 +438,75 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
         itemBuilder: (BuildContext context, int index) {
           return ListTile(
             title: Text(_pagos[index].detallePago ?? ''),
+            leading: _venta.idEstado == Estado.getValue(EstadoEnum.ANULADO)
+                ? null
+                : IconButton(
+                    onPressed: () async {
+                      final res = await showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          content: Text('¿Estas seguro de eliminar el pago?'),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context, false);
+                              },
+                              child: Text(
+                                'Cancelar',
+                                style: TextStyle(color: Colors.black),
+                              ),
+                            ),
+                            ElevatedButton(
+                              style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          Colors.red)),
+                              onPressed: () {
+                                Navigator.pop(context, true);
+                              },
+                              child: Text('Eliminar'),
+                            )
+                          ],
+                        ),
+                      );
+
+                      if (!res) return;
+                      _isFetching = true;
+                      setState(() {});
+
+                      try {
+                        final msg = await _ventasProvider
+                            .cancelPago(_pagos[index].idVentaPago.toString());
+                        _pagos.removeAt(index);
+                        _customAlertDialog.confirmAlert(
+                          context: context,
+                          title: 'Eliminación exitosa',
+                          description: msg,
+                          text: 'Aceptar',
+                          backFunction: () {
+                            // Navigator.pop(context);
+                            getVenta(_idVenta);
+                          },
+                        );
+
+                        _isFetching = false;
+                        setState(() {});
+                      } catch (e) {
+                        _isFetching = false;
+                        setState(() {});
+                        _customAlertDialog.errorAlert(
+                          context: context,
+                          title: 'Ops!',
+                          description: 'Ocurrio un error.',
+                          text: 'Aceptar',
+                        );
+                      }
+                    },
+                    icon: Icon(
+                      Icons.delete,
+                      color: Colors.redAccent,
+                    ),
+                  ),
             subtitle: Text(_pagos[index].fechaPago),
             trailing: Text(
               'S/ ${_pagos[index].montoPagado}',
@@ -508,7 +601,10 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: ElevatedButton(
-                      onPressed: () => _addNewPago(), child: Text('Agregar')),
+                    // onPressed: () => _addNewPago(), child: Text('Agregar')),
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('Aceptar'),
+                  ),
                 )
               ],
             ),
@@ -516,6 +612,7 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
         );
       },
     ).whenComplete(() {
+      _addNewPago();
       _ventaPago.detallePago = '';
       _montoController.updateValue(0);
     });
@@ -525,7 +622,8 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
     String response;
     if (!_formKey.currentState.validate()) return;
     _formKey.currentState.save();
-
+    _isFetching = true;
+    setState(() {});
     try {
       response = await _ventasProvider.updatePago(
           pago: _ventaPago, numeroComprobante: _venta.numeroComprobante);
@@ -536,9 +634,11 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
           description: response,
           text: 'Aceptar',
           backFunction: () {
-            Navigator.pop(context);
+            // Navigator.pop(context);
             getVenta(_idVenta);
           });
+      _isFetching = false;
+      setState(() {});
     } catch (e) {
       _customAlertDialog.errorAlert(
         context: context,
@@ -546,6 +646,8 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
         description: 'Ocurrio un error.',
         text: 'Aceptar',
       );
+      _isFetching = false;
+      setState(() {});
     }
   }
 
