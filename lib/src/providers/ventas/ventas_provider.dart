@@ -92,6 +92,30 @@ class VentasProvider {
     }
   }
 
+  Future<String> cancelVenta(String idVenta) async {
+    try {
+      final response = await dio.delete(
+        '$apiUrl/api/ventas/$idVenta',
+      );
+      final decodedData = response.data;
+      return decodedData['message'];
+    } catch (e) {
+      return e;
+    }
+  }
+
+  Future<String> cancelPago(String idPago) async {
+    try {
+      final response = await dio.delete(
+        '$apiUrl/api/ventas/pagos/$idPago',
+      );
+      final decodedData = response.data;
+      return decodedData['message'];
+    } catch (e) {
+      return e;
+    }
+  }
+
   Future<Map<String, dynamic>> getVentas({VentaFilter ventaFilter}) async {
     try {
       final response = await dio.get('$apiUrl/api/ventas',
