@@ -29,10 +29,11 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
     super.initState();
     Future.delayed(Duration.zero).then((_) async {
       if (ModalRoute.of(context).settings.arguments != null) {
-        setState(() {
-          _isLoading = true;
-          _hasError = false;
-        });
+        if (mounted)
+          setState(() {
+            _isLoading = true;
+            _hasError = false;
+          });
         try {
           _idCliente = ModalRoute.of(context).settings.arguments;
           cliente = await _clienteProvider.getClient(_idCliente);
@@ -42,26 +43,27 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
           _lugarController.text = cliente.lugar;
           _isLoading = false;
           _hasError = false;
-          setState(() {});
+          if (mounted) setState(() {});
         } catch (e) {
-          setState(() {
-            _hasError = true;
-            _isLoading = false;
-          });
+          if (mounted)
+            setState(() {
+              _hasError = true;
+              _isLoading = false;
+            });
           print('Must show an error page');
         }
       }
     });
   }
 
-  @override
-  void dispose() {
-    _nameController?.dispose();
-    _lastNameController?.dispose();
-    _puestoController?.dispose();
-    _lugarController?.dispose();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   _nameController?.dispose();
+  //   _lastNameController?.dispose();
+  //   _puestoController?.dispose();
+  //   _lugarController?.dispose();
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {

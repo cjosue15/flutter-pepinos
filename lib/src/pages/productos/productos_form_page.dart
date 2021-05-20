@@ -29,10 +29,11 @@ class _ProductsFormPageState extends State<ProductsFormPage> {
     super.initState();
     Future.delayed(Duration.zero).then((_) async {
       if (ModalRoute.of(context).settings.arguments != null) {
-        setState(() {
-          _isLoading = true;
-          _hasError = false;
-        });
+        if (mounted)
+          setState(() {
+            _isLoading = true;
+            _hasError = false;
+          });
         try {
           _idProducto = ModalRoute.of(context).settings.arguments;
           _producto = await _productosProvider.getProduct(_idProducto);
@@ -40,23 +41,23 @@ class _ProductsFormPageState extends State<ProductsFormPage> {
           _descripcionController.text = _producto.descripcion;
           _isLoading = false;
           _hasError = false;
-          setState(() {});
+          if (mounted) setState(() {});
         } catch (e) {
           _isLoading = false;
           _hasError = true;
-          setState(() {});
+          if (mounted) setState(() {});
           print('Must show an error page');
         }
       }
     });
   }
 
-  @override
-  void dispose() {
-    _nameController?.dispose();
-    _descripcionController?.dispose();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   _nameController?.dispose();
+  //   _descripcionController?.dispose();
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {

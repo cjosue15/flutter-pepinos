@@ -46,22 +46,25 @@ class _VentasPageState extends State<VentasPage> {
   }
 
   _getVenta() {
-    setState(() {
-      _isInitialLoading = true;
-      _hasInitialError = false;
-    });
-    _ventasProvider.getVentas(ventaFilter: _ventaFilter).then((response) {
+    if (mounted)
       setState(() {
-        _paginacion = response['paginacion'];
-        _ventas = response['ventas'];
-        _isInitialLoading = false;
+        _isInitialLoading = true;
         _hasInitialError = false;
       });
+    _ventasProvider.getVentas(ventaFilter: _ventaFilter).then((response) {
+      if (mounted)
+        setState(() {
+          _paginacion = response['paginacion'];
+          _ventas = response['ventas'];
+          _isInitialLoading = false;
+          _hasInitialError = false;
+        });
     }).catchError((error) {
-      setState(() {
-        _isInitialLoading = false;
-        _hasInitialError = true;
-      });
+      if (mounted)
+        setState(() {
+          _isInitialLoading = false;
+          _hasInitialError = true;
+        });
     });
   }
 

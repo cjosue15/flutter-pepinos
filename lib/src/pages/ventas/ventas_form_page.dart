@@ -69,9 +69,10 @@ class _VentasFormState extends State<VentasForm> {
   @override
   void initState() {
     super.initState();
-    setState(() {
-      _isLoading = true;
-    });
+    if (mounted)
+      setState(() {
+        _isLoading = true;
+      });
     Future.delayed(Duration.zero).then((_) async {
       final clientes = await _dropdownProvider.getClientsCombo();
       final invernaderos = await _dropdownProvider.getInvernaderosCombo();
@@ -88,9 +89,10 @@ class _VentasFormState extends State<VentasForm> {
       }
     }).catchError((error) {
       print('Must show an error page');
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted)
+        setState(() {
+          _isLoading = false;
+        });
     });
 
     _montoPagadoController.addListener(_checkMontoPagado);
