@@ -65,4 +65,16 @@ class ClienteProvider {
       return e;
     }
   }
+
+  Future<String> deleteCliente(int idCliente) async {
+    try {
+      final response = await dio.delete(
+        '$apiUrl/api/clientes/$idCliente',
+      );
+      final decodedData = response.data;
+      return decodedData['message'];
+    } catch (e) {
+      return e;
+    }
+  }
 }
