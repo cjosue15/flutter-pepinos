@@ -203,7 +203,7 @@ class VentaFilter {
 
   VentaFilter(
       {this.pagina = 1,
-      this.filas = 10,
+      this.filas = 12,
       this.idCliente,
       this.idCampania,
       this.idEstado,
