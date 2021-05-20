@@ -22,7 +22,7 @@ class _InvernaderoPageFormState extends State<InvernaderoPageForm> {
   bool _isSaving = false;
   bool _isLoading = false;
   bool _hasError = false;
-  final _nameController = TextEditingController();
+  TextEditingController _nameController = TextEditingController();
 
   @override
   void initState() {
@@ -63,6 +63,7 @@ class _InvernaderoPageFormState extends State<InvernaderoPageForm> {
           });
       } catch (e) {
         print('Must show an error page');
+        print(e);
         if (mounted)
           setState(() {
             _isLoading = false;
@@ -72,11 +73,11 @@ class _InvernaderoPageFormState extends State<InvernaderoPageForm> {
     });
   }
 
-  @override
-  void dispose() {
-    _nameController?.dispose();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   _nameController.dispose();
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
