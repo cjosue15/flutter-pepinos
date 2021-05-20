@@ -6,6 +6,7 @@ import 'package:pepinos/src/models/paginacion_model.dart';
 import 'package:pepinos/src/models/venta_model.dart';
 import 'package:pepinos/src/providers/ventas/ventas_provider.dart';
 import 'package:pepinos/src/utils/date_format.dart';
+import 'package:pepinos/src/widgets/alert_dialog.dart';
 import 'package:pepinos/src/widgets/date_range_picker.dart';
 import 'package:pepinos/src/widgets/drawer_menu.dart';
 import 'package:pepinos/src/utils/number_format.dart';
@@ -32,7 +33,10 @@ class _VentasPageState extends State<VentasPage> {
   DropdownItem _invernaderoSelected;
   DropdownItem _campaniaSelected;
   DropdownItem _estadoSelected;
+  bool _isDeleting = false;
   List<Venta> _ventas = [];
+  StateSetter _stateModal;
+  CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
 
   @override
   void initState() {
@@ -305,50 +309,166 @@ class _VentasPageState extends State<VentasPage> {
             ? Colors.amber
             : Colors.red;
 
-    return Container(
-      child: Column(
-        children: <Widget>[
-          ListTile(
-            leading: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Icon(
-                  Icons.circle,
-                  color: color,
-                ),
-              ],
-            ),
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Text(
-                //   'Boleta ${venta.numeroComprobante}',
-                //   style: TextStyle(fontWeight: FontWeight.bold),
-                // ),
-                Text(
-                  '${venta.cliente}',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'S/ ${venta.montoTotal.toStringDouble(2)}',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                )
-              ],
-            ),
-            subtitle: Text('${venta.numeroComprobante}  ${venta.estado}'),
-            onTap: () => _goVenta(context, venta.numeroComprobante),
-            trailing: Icon(
-              venta.idEstado == Estado.getValue(EstadoEnum.PENDIENTE) ||
-                      venta.idEstado == Estado.getValue(EstadoEnum.CANCELADO)
-                  ? Icons.keyboard_arrow_right
-                  : null,
-              color: Colors.green,
-            ),
-            // onTap: () =>
-            //     _goFormPage(context, producto.idProducto.toString())
+    return Dismissible(
+      key: Key(venta.numeroComprobante),
+      onDismissed: (direcction) {
+        final index = _ventas.indexWhere(
+            (element) => element.numeroComprobante == venta.numeroComprobante);
+        _ventas.removeAt(index);
+        setState(() {});
+      },
+      direction: DismissDirection.endToStart,
+      background: slideLeftBackground(),
+      confirmDismiss: (direction) async {
+        if (venta.idEstado == Estado.getValue(EstadoEnum.ANULADO)) return false;
+        final bool res = await showDialog(
+          context: context,
+          builder: (BuildContext context) => StatefulBuilder(
+            builder: (context, StateSetter _setState) {
+              _stateModal = _setState;
+              return AlertDialog(
+                content: Text(
+                    "¿Esta seguro de ANULAR la venta con comprobante ${venta.numeroComprobante}?"),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text(
+                      "Cancelar",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            _isDeleting ? Colors.grey : Colors.redAccent)),
+                    child: Text(
+                      "${_isDeleting ? 'Anulando' : 'Anular venta'}",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: _isDeleting ? null : () => onDelete(venta),
+                  ),
+                ],
+              );
+            },
           ),
-          Divider()
-        ],
+        );
+        return res;
+      },
+      child: Container(
+        child: Column(
+          children: <Widget>[
+            ListTile(
+              leading: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Icon(
+                    Icons.circle,
+                    color: color,
+                  ),
+                ],
+              ),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Text(
+                  //   'Boleta ${venta.numeroComprobante}',
+                  //   style: TextStyle(fontWeight: FontWeight.bold),
+                  // ),
+                  Text(
+                    '${venta.cliente}',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'S/ ${venta.montoTotal.toStringDouble(2)}',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  )
+                ],
+              ),
+              subtitle: Text('${venta.numeroComprobante}  ${venta.estado}'),
+              onTap: () => _goVenta(context, venta.numeroComprobante),
+              trailing: Icon(
+                venta.idEstado == Estado.getValue(EstadoEnum.PENDIENTE) ||
+                        venta.idEstado == Estado.getValue(EstadoEnum.CANCELADO)
+                    ? Icons.keyboard_arrow_right
+                    : null,
+                color: Colors.green,
+              ),
+              // onTap: () =>
+              //     _goFormPage(context, producto.idProducto.toString())
+            ),
+            Divider(
+              height: 0,
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  void onDelete(Venta venta) async {
+    _isDeleting = true;
+    setState(() {});
+    _stateModal(() {});
+    try {
+      final msg = await _ventasProvider.cancelVenta(venta.numeroComprobante);
+      final index = _ventas.indexWhere(
+          (element) => element.numeroComprobante == venta.numeroComprobante);
+      venta.idEstado = 13;
+      _ventas[index] = venta;
+      _isDeleting = false;
+
+      _customAlertDialog.confirmAlert(
+        context: context,
+        title: 'Eliminación exitosa',
+        description: msg,
+        text: 'Aceptar',
+        backFunction: () {
+          Navigator.pop(context);
+        },
+      );
+
+      setState(() {});
+      _stateModal(() {});
+    } catch (e) {
+      _customAlertDialog.errorAlert(
+        context: context,
+        title: 'Ops!',
+        description: 'Ocurrio un error.',
+        text: 'Aceptar',
+      );
+      _isDeleting = false;
+      setState(() {});
+      _stateModal(() {});
+    }
+  }
+
+  Widget slideLeftBackground() {
+    return Container(
+      color: Colors.redAccent,
+      child: Align(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            Icon(
+              Icons.delete,
+              color: Colors.white,
+            ),
+            Text(
+              " Anular",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.right,
+            ),
+            SizedBox(
+              width: 20,
+            ),
+          ],
+        ),
+        alignment: Alignment.centerRight,
       ),
     );
   }
