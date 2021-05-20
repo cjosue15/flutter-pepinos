@@ -74,4 +74,16 @@ class InvernaderoProvider {
       return e;
     }
   }
+
+  Future<String> deleteInvernadero(int idInvernadero) async {
+    try {
+      final response = await dio.delete(
+        '$apiUrl/api/invernaderos/$idInvernadero',
+      );
+      final decodedData = response.data;
+      return decodedData['message'];
+    } catch (e) {
+      return e;
+    }
+  }
 }
