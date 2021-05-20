@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pepinos/src/models/paginacion_model.dart';
+import 'package:pepinos/src/utils/navigate.dart';
 import 'package:pepinos/src/widgets/screens/error_screen.dart';
 import 'package:pepinos/src/widgets/screens/no_data_screen.dart';
 
@@ -76,7 +77,8 @@ class _InfiniteListViewState<T> extends State<InfiniteListView<T>> {
               widget.hasInitialError
                   ? ErrorScreen(
                       hasAppBar: false,
-                    )
+                      onPressed: () => navigateWithNamedAndIdArgument(
+                          context: context, route: '/'))
                   : widget.data.length > 0
                       ? ListView.builder(
                           controller: _scrollController,
