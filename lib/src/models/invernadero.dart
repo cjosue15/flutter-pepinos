@@ -70,7 +70,7 @@ class InvernaderoFilter {
 
   InvernaderoFilter({
     this.pagina = 1,
-    this.filas = 10,
+    this.filas = 12,
   });
 
   factory InvernaderoFilter.fromJson(Map<String, dynamic> json) =>
