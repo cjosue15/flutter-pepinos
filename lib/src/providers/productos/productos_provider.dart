@@ -68,4 +68,16 @@ class ProductosProvider {
       return e;
     }
   }
+
+  Future<String> deleteProductos(int idProducto) async {
+    try {
+      final response = await dio.delete(
+        '$apiUrl/api/productos/$idProducto',
+      );
+      final decodedData = response.data;
+      return decodedData['message'];
+    } catch (e) {
+      return e;
+    }
+  }
 }
