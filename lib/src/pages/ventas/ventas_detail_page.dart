@@ -518,8 +518,8 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
     );
   }
 
-  void _modalUpdateTotal() {
-    showModalBottomSheet<void>(
+  void _modalUpdateTotal() async {
+    final resp = await showModalBottomSheet(
       isScrollControlled: true,
       context: context,
       shape: RoundedRectangleBorder(
@@ -601,8 +601,11 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: ElevatedButton(
-                    // onPressed: () => _addNewPago(), child: Text('Agregar')),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      if (!_formKey.currentState.validate()) return;
+                      _formKey.currentState.save();
+                      Navigator.pop(context, true);
+                    },
                     child: Text('Aceptar'),
                   ),
                 )
@@ -611,17 +614,17 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
           ),
         );
       },
-    ).whenComplete(() {
+    );
+
+    if (resp != null && resp) {
       _addNewPago();
       _ventaPago.detallePago = '';
       _montoController.updateValue(0);
-    });
+    }
   }
 
   void _addNewPago() async {
     String response;
-    if (!_formKey.currentState.validate()) return;
-    _formKey.currentState.save();
     _isFetching = true;
     setState(() {});
     try {
@@ -640,6 +643,7 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
       _isFetching = false;
       setState(() {});
     } catch (e) {
+      print(e);
       _customAlertDialog.errorAlert(
         context: context,
         title: 'Ops!',
