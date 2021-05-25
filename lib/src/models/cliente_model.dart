@@ -42,7 +42,7 @@ class Cliente {
         "apellidos": apellidos,
         "lugar": lugar,
         "puesto": puesto,
-        "id_estado": idEstado
+        // "id_estado": idEstado
       };
 }
 
@@ -68,5 +68,32 @@ class ClienteFilter {
   Map<String, dynamic> toJson() => {
         "pagina": pagina,
         "filas": filas,
+      };
+}
+
+ClienteReporteTotal clienteReporteTotalFromJson(String str) =>
+    ClienteReporteTotal.fromJson(json.decode(str));
+
+String clienteReporteTotalToJson(ClienteReporteTotal data) =>
+    json.encode(data.toJson());
+
+class ClienteReporteTotal {
+  ClienteReporteTotal({
+    this.cantidadTotal,
+    this.montoTotal,
+  });
+
+  int cantidadTotal;
+  double montoTotal;
+
+  factory ClienteReporteTotal.fromJson(Map<String, dynamic> json) =>
+      ClienteReporteTotal(
+        cantidadTotal: json["cantidad_total"],
+        montoTotal: (json["monto_total"] ?? 0) / 1,
+      );
+
+  Map<String, dynamic> toJson() => {
+        "cantidad_total": cantidadTotal,
+        "monto_total": montoTotal,
       };
 }
