@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pepinos/src/enums/estado_campania.dart';
 import 'package:pepinos/src/models/campanias_model.dart';
 import 'package:pepinos/src/providers/campanias/campanias_provider.dart';
 import 'package:pepinos/src/utils/date_format.dart';
@@ -87,7 +88,11 @@ class _CampaniaFormPageState extends State<CampaniaFormPage> {
                               : SizedBox(height: 25.0),
                           idCampaniaIsEmpty ? Container() : _createFinishDate(),
                           SizedBox(height: 30.0),
-                          _createButton(context)
+                          _campania.idEstado ==
+                                  EstadoCampania.getValue(
+                                      EstadoCampaniaEnum.EN_CURSO)
+                              ? _createButton(context)
+                              : Container()
                         ],
                       ),
                     ),
@@ -105,6 +110,10 @@ class _CampaniaFormPageState extends State<CampaniaFormPage> {
         labelText: 'Campaña',
         border: OutlineInputBorder(),
       ),
+      enabled: _campania.idEstado ==
+              EstadoCampania.getValue(EstadoCampaniaEnum.EN_CURSO)
+          ? true
+          : false,
       onSaved: (value) => _campania.nombreCampania = value,
       onChanged: (value) => _campania.nombreCampania = value,
       validator: (value) => validators.isTextEmpty(
@@ -114,6 +123,10 @@ class _CampaniaFormPageState extends State<CampaniaFormPage> {
 
   Widget _createStartDate() {
     return DatePickerForm(
+      enabled: _campania.idEstado ==
+              EstadoCampania.getValue(EstadoCampaniaEnum.EN_CURSO)
+          ? true
+          : false,
       labelText: 'Fecha de inicio',
       initialDate: _campania.fechaInicio != null
           ? dateStringToDateTime(date: _campania.fechaInicio)
@@ -134,6 +147,10 @@ class _CampaniaFormPageState extends State<CampaniaFormPage> {
 
   Widget _createFinishDate() {
     return DatePickerForm(
+      enabled: _campania.idEstado ==
+              EstadoCampania.getValue(EstadoCampaniaEnum.EN_CURSO)
+          ? true
+          : false,
       labelText: 'Fecha de cierre',
       firstDate: _campania.fechaInicio == null || _campania.fechaInicio.isEmpty
           ? null
