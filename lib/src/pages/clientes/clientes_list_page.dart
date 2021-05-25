@@ -106,7 +106,7 @@ class _ClientesListPageState extends State<ClientesListPage> {
       key: Key(cliente.idCliente.toString()),
       direction: DismissDirection.endToStart,
       background: DismissibleBackground(
-        color: Colors.red,
+        color: Colors.redAccent,
         icon: Icons.delete,
         text: 'Eliminar',
       ),
