@@ -134,7 +134,7 @@ class _ClientesListPageState extends State<ClientesListPage> {
                         backgroundColor: MaterialStateProperty.all<Color>(
                             _isDeleting ? Colors.grey : Colors.redAccent)),
                     child: Text(
-                      "${_isDeleting ? 'Anulando' : 'Eliminar cliente'}",
+                      "${_isDeleting ? 'Eliminando' : 'Eliminar cliente'}",
                       style: TextStyle(color: Colors.white),
                     ),
                     onPressed: _isDeleting ? null : () => onDelete(cliente),
