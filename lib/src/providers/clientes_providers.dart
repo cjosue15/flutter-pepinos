@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:pepinos/src/models/cliente_model.dart';
 import 'package:pepinos/src/models/paginacion_model.dart';
+import 'package:pepinos/src/models/venta_model.dart';
 import 'package:pepinos/src/utils/api.dart';
 
 class ClienteProvider {
@@ -74,6 +75,29 @@ class ClienteProvider {
       final decodedData = response.data;
       return decodedData['message'];
     } catch (e) {
+      return e;
+    }
+  }
+
+  // Reportes
+
+  Future<Map<String, dynamic>> clienteReporteVentas(
+      {String idCliente, String year, String month}) async {
+    try {
+      final responseTotales = await dio.get(
+        '$apiUrl/api/clientes/reporte/1?idCliente=$idCliente&periodo=${year + month.padLeft(2, '0')}',
+      );
+      final responseVentas = await dio.get(
+        '$apiUrl/api/clientes/reporte/2?idCliente=$idCliente&periodo=${year + month.padLeft(2, '0')}',
+      );
+      final decodedDataVentas = responseVentas.data;
+      final ventas = new Venta.fromJsonList(jsonList: decodedDataVentas);
+      final decodedDataTotales = responseTotales.data[0];
+      final totales = new ClienteReporteTotal.fromJson(decodedDataTotales);
+
+      return {'ventas': ventas.items, 'totales': totales};
+    } catch (e) {
+      print(e);
       return e;
     }
   }
