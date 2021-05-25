@@ -56,47 +56,55 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
     });
   }
 
-  // @override
-  // void dispose() {
-  //   _nameController?.dispose();
-  //   _lastNameController?.dispose();
-  //   _puestoController?.dispose();
-  //   _lugarController?.dispose();
-  //   super.dispose();
-  // }
+  @override
+  void dispose() {
+    print('chau');
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-          title: Text(
-              '${_idCliente == null || _idCliente.isEmpty ? 'Nuevo' : 'Editar'} cliente')),
-      body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
-          : SingleChildScrollView(
-              child: Container(
-                padding: EdgeInsets.all(15.0),
-                margin: EdgeInsets.only(top: 20.0),
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    children: <Widget>[
-                      _createName(),
-                      SizedBox(height: 25.0),
-                      _createLastName(),
-                      SizedBox(height: 25.0),
-                      _createLugar(),
-                      SizedBox(height: 25.0),
-                      _createPuesto(),
-                      SizedBox(height: 30.0),
-                      _crearButton(context)
-                    ],
+    return WillPopScope(
+      onWillPop: () {
+        if (_idCliente != null) {
+          Navigator.pushReplacementNamed(context, 'clientes/details',
+              arguments: _idCliente);
+        } else {
+          Navigator.of(context).pop();
+        }
+        return Future.value(true);
+      },
+      child: Scaffold(
+        appBar: AppBar(
+            title: Text(
+                '${_idCliente == null || _idCliente.isEmpty ? 'Nuevo' : 'Editar'} cliente')),
+        body: _isLoading
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : SingleChildScrollView(
+                child: Container(
+                  padding: EdgeInsets.all(15.0),
+                  margin: EdgeInsets.only(top: 20.0),
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      children: <Widget>[
+                        _createName(),
+                        SizedBox(height: 25.0),
+                        _createLastName(),
+                        SizedBox(height: 25.0),
+                        _createLugar(),
+                        SizedBox(height: 25.0),
+                        _createPuesto(),
+                        SizedBox(height: 30.0),
+                        _crearButton(context)
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
+      ),
     );
   }
 
@@ -177,8 +185,9 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
           description: response,
           text: 'Aceptar',
           backFunction: () {
-            Navigator.pop(context);
-            Navigator.pushReplacementNamed(context, 'clientes');
+            Navigator.pushReplacementNamed(
+                context, _idCliente != null ? 'clientes/details' : 'clientes',
+                arguments: _idCliente);
           });
       setState(() {
         _isSaving = false;
