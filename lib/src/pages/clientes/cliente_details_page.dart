@@ -131,14 +131,14 @@ class _ClienteDetailsPageState extends State<ClienteDetailsPage> {
                             ),
                             Card(
                               child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 10.0),
+                                padding: EdgeInsets.symmetric(vertical: 15.0),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: <Widget>[
                                     _createMonthPicker(),
                                     SizedBox(
-                                      width: 5.0,
+                                      width: 20.0,
                                     ),
                                     _createYearPicker()
                                   ],
@@ -156,7 +156,7 @@ class _ClienteDetailsPageState extends State<ClienteDetailsPage> {
                         ),
                       ),
                       Container(
-                        padding: EdgeInsets.only(left: 20.0),
+                        padding: EdgeInsets.only(left: 15.0),
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
@@ -167,50 +167,55 @@ class _ClienteDetailsPageState extends State<ClienteDetailsPage> {
                         ),
                       ),
                       SizedBox(
-                        height: 30.0,
+                        height: 15.0,
                       ),
                       Expanded(
-                        child: ListView.separated(
-                          itemCount: _ventas.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return ListTile(
-                              title: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text(
-                                        _ventas[index].numeroComprobante,
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      Text(
-                                        _ventas[index].fechaVenta,
-                                        style: TextStyle(fontSize: 14.0),
-                                      ),
-                                    ],
-                                  ),
-                                  Column(
-                                    children: <Widget>[
-                                      Text(
-                                        'S/ ${_ventas[index].montoTotal.toStringDouble(2)}',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.bold),
-                                      )
-                                    ],
-                                  )
-                                ],
+                        child: _ventas.length == 0
+                            ? Text(
+                                'No hay ventas',
+                                style: TextStyle(fontSize: 16.0),
+                              )
+                            : ListView.separated(
+                                itemCount: _ventas.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  return ListTile(
+                                    title: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: <Widget>[
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: <Widget>[
+                                            Text(
+                                              _ventas[index].numeroComprobante,
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            Text(
+                                              _ventas[index].fechaVenta,
+                                              style: TextStyle(fontSize: 14.0),
+                                            ),
+                                          ],
+                                        ),
+                                        Column(
+                                          children: <Widget>[
+                                            Text(
+                                              'S/ ${_ventas[index].montoTotal.toStringDouble(2)}',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold),
+                                            )
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                },
+                                separatorBuilder: (context, index) => Divider(
+                                  height: 0,
+                                  color: Colors.black26,
+                                ),
                               ),
-                            );
-                          },
-                          separatorBuilder: (context, index) => Divider(
-                            height: 0,
-                            color: Colors.black26,
-                          ),
-                        ),
                       ),
                     ],
                   ),
@@ -224,10 +229,18 @@ class _ClienteDetailsPageState extends State<ClienteDetailsPage> {
         controller: monthController,
         textAlign: TextAlign.center,
         readOnly: true,
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0),
+        style: TextStyle(
+            fontWeight: FontWeight.bold, fontSize: 25.0, color: Colors.white),
         decoration: InputDecoration(
-          border: InputBorder.none,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(90.0),
+            ),
+            borderSide: BorderSide.none,
+          ),
           contentPadding: EdgeInsets.zero,
+          fillColor: Colors.green,
+          filled: true,
         ),
         onTap: () {
           _selectMonth();
@@ -243,10 +256,18 @@ class _ClienteDetailsPageState extends State<ClienteDetailsPage> {
         controller: yearController,
         textAlign: TextAlign.center,
         readOnly: true,
-        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25.0),
+        style: TextStyle(
+            fontWeight: FontWeight.bold, fontSize: 25.0, color: Colors.white),
         decoration: InputDecoration(
-          border: InputBorder.none,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(90.0),
+            ),
+            borderSide: BorderSide.none,
+          ),
           contentPadding: EdgeInsets.zero,
+          fillColor: Colors.green,
+          filled: true,
         ),
         onTap: () {
           _selectYear();
