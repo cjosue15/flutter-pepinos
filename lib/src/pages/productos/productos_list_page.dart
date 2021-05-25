@@ -3,6 +3,7 @@ import 'package:pepinos/src/models/paginacion_model.dart';
 import 'package:pepinos/src/models/producto_model.dart';
 import 'package:pepinos/src/providers/productos/productos_provider.dart';
 import 'package:pepinos/src/widgets/alert_dialog.dart';
+import 'package:pepinos/src/widgets/dismissible_background.dart';
 import 'package:pepinos/src/widgets/drawer_menu.dart';
 import 'package:pepinos/src/widgets/infinite_list_view.dart';
 
@@ -21,7 +22,7 @@ class _ProductosListPageState extends State<ProductosListPage> {
   Paginacion _paginacion = new Paginacion();
   List<Producto> _productos = [];
   bool _isDeleting = false;
-  StateSetter stateModal;
+  StateSetter _stateModal;
   CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
 
   @override
@@ -95,91 +96,70 @@ class _ProductosListPageState extends State<ProductosListPage> {
   }
 
   Widget _createItem(BuildContext context, Producto producto) {
-    return Container(
-      child: Column(
-        children: <Widget>[
-          ListTile(
-            title: Text(producto.nombreProducto),
-            trailing: Icon(
-              Icons.keyboard_arrow_right,
-              color: Colors.green,
-            ),
-            onTap: () => _goFormPage(
-              context,
-              producto.idProducto.toString(),
-            ),
-            onLongPress: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (contextModalBottom) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      ListTile(
-                        leading: new Icon(Icons.delete),
-                        title: new Text('Eliminar'),
-                        onTap: () async {
-                          final response = await showDialog(
-                            context: context,
-                            builder: (contextDialog) {
-                              return StatefulBuilder(
-                                  builder: (context, StateSetter setState) {
-                                stateModal = setState;
-                                return AlertDialog(
-                                  title: Text('Eliminar producto'),
-                                  content: RichText(
-                                    text: TextSpan(
-                                      style: TextStyle(
-                                          color: Colors.black, fontSize: 16.0),
-                                      children: <TextSpan>[
-                                        TextSpan(
-                                            text:
-                                                'Todo lo relacionado con el producto'),
-                                        TextSpan(
-                                            text:
-                                                ' ${producto.nombreProducto} ',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
-                                        TextSpan(text: 'se borrara.')
-                                      ],
-                                    ),
-                                  ),
-                                  actions: <Widget>[
-                                    ElevatedButton(
-                                      style: ButtonStyle(
-                                        backgroundColor:
-                                            MaterialStateProperty.all<Color>(
-                                                _isDeleting
-                                                    ? Colors.grey
-                                                    : Colors.red),
-                                      ),
-                                      onPressed: _isDeleting
-                                          ? null
-                                          : () => onDelete(producto),
-                                      child: Text(
-                                        '${_isDeleting ? 'Eliminando' : 'Entiendo lo que hago.'}',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    )
-                                  ],
-                                );
-                              });
-                            },
-                          );
-
-                          if (response != null && response) {
-                            Navigator.pop(context);
-                          }
-                        },
-                      ),
-                    ],
-                  );
-                },
+    return Dismissible(
+      key: Key(producto.idProducto.toString()),
+      direction: DismissDirection.endToStart,
+      background: DismissibleBackground(
+        color: Colors.redAccent,
+        icon: Icons.delete,
+        text: 'Eliminar',
+      ),
+      confirmDismiss: (direction) async {
+        final bool res = await showDialog(
+          context: context,
+          builder: (BuildContext context) => StatefulBuilder(
+            builder: (context, StateSetter _setState) {
+              _stateModal = _setState;
+              return AlertDialog(
+                content: Text(
+                    "¿Esta seguro de eliminar el producto ${producto.nombreProducto}?"),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text(
+                      "Cancelar",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            _isDeleting ? Colors.grey : Colors.redAccent)),
+                    child: Text(
+                      "${_isDeleting ? 'Eliminando' : 'Eliminar producto'}",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: _isDeleting ? null : () => onDelete(producto),
+                  ),
+                ],
               );
             },
           ),
-          Divider()
-        ],
+        );
+        return res;
+      },
+      child: Container(
+        child: Column(
+          children: <Widget>[
+            ListTile(
+              title: Text(producto.nombreProducto),
+              subtitle: Text(producto.descripcion),
+              trailing: Icon(
+                Icons.keyboard_arrow_right,
+                color: Colors.green,
+              ),
+              onTap: () => _goFormPage(
+                context,
+                producto.idProducto.toString(),
+              ),
+            ),
+            Divider(
+              height: 0,
+            )
+          ],
+        ),
       ),
     );
   }
@@ -192,14 +172,15 @@ class _ProductosListPageState extends State<ProductosListPage> {
 
   onDelete(Producto producto) async {
     _isDeleting = true;
-    setState(() {});
-    stateModal(() {});
+    if (mounted) {
+      setState(() {});
+      _stateModal(() {});
+    }
     try {
       final message =
           await _productosProvider.deleteProductos(producto.idProducto);
       final index = _productos
           .indexWhere((element) => element.idProducto == producto.idProducto);
-      _productos.removeAt(index);
       _customAlertDialog.confirmAlert(
         context: context,
         title: 'Eliminación exitosa',
@@ -207,11 +188,14 @@ class _ProductosListPageState extends State<ProductosListPage> {
         text: 'Aceptar',
         backFunction: () {
           Navigator.pop(context, true);
+          _removeItem(index);
         },
       );
       _isDeleting = false;
-      setState(() {});
-      stateModal(() {});
+      if (mounted) {
+        setState(() {});
+        _stateModal(() {});
+      }
     } catch (e) {
       _customAlertDialog.errorAlert(
         context: context,
@@ -220,8 +204,15 @@ class _ProductosListPageState extends State<ProductosListPage> {
         text: 'Aceptar',
       );
       _isDeleting = false;
-      setState(() {});
-      stateModal(() {});
+      if (mounted) {
+        setState(() {});
+        _stateModal(() {});
+      }
     }
+  }
+
+  void _removeItem(int index) {
+    _productos.removeAt(index);
+    setState(() {});
   }
 }
