@@ -3,6 +3,7 @@ import 'package:pepinos/src/models/invernadero.dart';
 import 'package:pepinos/src/models/paginacion_model.dart';
 import 'package:pepinos/src/providers/invernaderos/invernaderos_provider.dart';
 import 'package:pepinos/src/widgets/alert_dialog.dart';
+import 'package:pepinos/src/widgets/dismissible_background.dart';
 import 'package:pepinos/src/widgets/drawer_menu.dart';
 import 'package:pepinos/src/widgets/infinite_list_view.dart';
 
@@ -22,7 +23,7 @@ class _InvernaderoListPageState extends State<InvernaderoListPage> {
   bool _isFetching = false;
   bool _isDeleting = false;
   CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
-  StateSetter stateModal;
+  StateSetter _stateModal;
 
   @override
   void initState() {
@@ -101,91 +102,70 @@ class _InvernaderoListPageState extends State<InvernaderoListPage> {
   }
 
   Widget _createItem(Invernadero invernadero) {
-    return Container(
-      child: Column(
-        children: <Widget>[
-          ListTile(
-            title: Text(invernadero.nombreInvernadero),
-            trailing: Icon(
-              Icons.keyboard_arrow_right,
-              color: Colors.green,
-            ),
-            onTap: () => _goFormPage(
-              context,
-              invernadero.idInvernadero.toString(),
-            ),
-            onLongPress: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (contextModalBottom) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      ListTile(
-                        leading: new Icon(Icons.delete),
-                        title: new Text('Eliminar'),
-                        onTap: () async {
-                          final response = await showDialog(
-                            context: context,
-                            builder: (contextDialog) {
-                              return StatefulBuilder(
-                                  builder: (context, StateSetter setState) {
-                                stateModal = setState;
-                                return AlertDialog(
-                                  title: Text('Eliminar invernadero'),
-                                  content: RichText(
-                                    text: TextSpan(
-                                      style: TextStyle(
-                                          color: Colors.black, fontSize: 16.0),
-                                      children: <TextSpan>[
-                                        TextSpan(
-                                            text:
-                                                'Todo lo relacionado con el invernadero'),
-                                        TextSpan(
-                                            text:
-                                                ' ${invernadero.nombreInvernadero} ',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
-                                        TextSpan(text: 'se borrara.')
-                                      ],
-                                    ),
-                                  ),
-                                  actions: <Widget>[
-                                    ElevatedButton(
-                                      style: ButtonStyle(
-                                        backgroundColor:
-                                            MaterialStateProperty.all<Color>(
-                                                _isDeleting
-                                                    ? Colors.grey
-                                                    : Colors.red),
-                                      ),
-                                      onPressed: _isDeleting
-                                          ? null
-                                          : () => onDelete(invernadero),
-                                      child: Text(
-                                        '${_isDeleting ? 'Eliminando' : 'Entiendo lo que hago.'}',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    )
-                                  ],
-                                );
-                              });
-                            },
-                          );
-
-                          if (response != null && response) {
-                            Navigator.pop(context);
-                          }
-                        },
-                      ),
-                    ],
-                  );
-                },
+    return Dismissible(
+      key: Key(invernadero.idInvernadero.toString()),
+      direction: DismissDirection.endToStart,
+      background: DismissibleBackground(
+        color: Colors.redAccent,
+        icon: Icons.delete,
+        text: 'Eliminar',
+      ),
+      confirmDismiss: (direction) async {
+        final bool res = await showDialog(
+          context: context,
+          builder: (BuildContext context) => StatefulBuilder(
+            builder: (context, StateSetter _setState) {
+              _stateModal = _setState;
+              return AlertDialog(
+                content: Text(
+                    "¿Esta seguro de eliminar el invernadero ${invernadero.nombreInvernadero}?"),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text(
+                      "Cancelar",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            _isDeleting ? Colors.grey : Colors.redAccent)),
+                    child: Text(
+                      "${_isDeleting ? 'Eliminando' : 'Eliminar campaña'}",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: _isDeleting ? null : () => onDelete(invernadero),
+                  ),
+                ],
               );
             },
           ),
-          Divider()
-        ],
+        );
+        return res;
+      },
+      child: Container(
+        child: Column(
+          children: <Widget>[
+            ListTile(
+              title: Text(invernadero.nombreInvernadero),
+              subtitle: Text('Productos asociados: 0'),
+              trailing: Icon(
+                Icons.keyboard_arrow_right,
+                color: Colors.green,
+              ),
+              onTap: () => _goFormPage(
+                context,
+                invernadero.idInvernadero.toString(),
+              ),
+            ),
+            Divider(
+              height: 0,
+            )
+          ],
+        ),
       ),
     );
   }
@@ -200,13 +180,12 @@ class _InvernaderoListPageState extends State<InvernaderoListPage> {
   void onDelete(Invernadero invernadero) async {
     _isDeleting = true;
     setState(() {});
-    stateModal(() {});
+    _stateModal(() {});
     try {
       final message = await _invernaderoProvider
           .deleteInvernadero(invernadero.idInvernadero);
       final index = _invernaderos.indexWhere(
           (element) => element.idInvernadero == invernadero.idInvernadero);
-      _invernaderos.removeAt(index);
       _customAlertDialog.confirmAlert(
         context: context,
         title: 'Eliminación exitosa',
@@ -214,11 +193,12 @@ class _InvernaderoListPageState extends State<InvernaderoListPage> {
         text: 'Aceptar',
         backFunction: () {
           Navigator.pop(context, true);
+          _removeItem(index);
         },
       );
       _isDeleting = false;
       setState(() {});
-      stateModal(() {});
+      _stateModal(() {});
     } catch (e) {
       _customAlertDialog.errorAlert(
         context: context,
@@ -228,7 +208,12 @@ class _InvernaderoListPageState extends State<InvernaderoListPage> {
       );
       _isDeleting = false;
       setState(() {});
-      stateModal(() {});
+      _stateModal(() {});
     }
+  }
+
+  void _removeItem(int index) {
+    _invernaderos.removeAt(index);
+    setState(() {});
   }
 }
