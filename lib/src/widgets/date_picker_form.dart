@@ -9,6 +9,7 @@ class DatePickerForm extends StatefulWidget {
   final void Function(String) onDateChanged;
   final DateTime firstDate;
   final DateTime initialDate;
+  final bool enabled;
 
   DatePickerForm({
     this.labelText = 'Fecha',
@@ -17,6 +18,7 @@ class DatePickerForm extends StatefulWidget {
     this.onSaved,
     @required this.onDateChanged,
     this.initialDate,
+    this.enabled = true,
   });
 
   @override
@@ -65,6 +67,7 @@ class _DatePickerFormState extends State<DatePickerForm> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      enabled: widget.enabled,
       controller: textController,
       validator: widget.validator,
       onSaved: widget.onSaved,
