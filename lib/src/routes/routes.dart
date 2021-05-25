@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pepinos/src/pages/campanias/campanias_form_page.dart';
 import 'package:pepinos/src/pages/campanias/campanias_list_page.dart';
 import 'package:pepinos/src/pages/charts/home_page.dart';
+import 'package:pepinos/src/pages/clientes/cliente_details_page.dart';
 import 'package:pepinos/src/pages/clientes/cliente_form_page.dart';
 import 'package:pepinos/src/pages/clientes/clientes_list_page.dart';
 import 'package:pepinos/src/pages/invernaderos/invernadero_form_page.dart';
@@ -20,6 +21,7 @@ Map<String, WidgetBuilder> getAplicationRoutes() {
     'ventas/detail': (BuildContext context) => VentasDetailPage(),
     'clientes': (BuildContext context) => ClientesListPage(),
     'clientes/form': (BuildContext context) => ClienteFormPage(),
+    'clientes/details': (BuildContext context) => ClienteDetailsPage(),
     'productos': (BuildContext context) => ProductosListPage(),
     'productos/form': (BuildContext context) => ProductsFormPage(),
     'invernaderos': (BuildContext context) => InvernaderoListPage(),
