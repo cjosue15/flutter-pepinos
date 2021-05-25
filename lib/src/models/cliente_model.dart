@@ -57,7 +57,7 @@ class ClienteFilter {
 
   ClienteFilter({
     this.pagina = 1,
-    this.filas = 10,
+    this.filas = 12,
   });
 
   factory ClienteFilter.fromJson(Map<String, dynamic> json) => ClienteFilter(
