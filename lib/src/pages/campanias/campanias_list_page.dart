@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:pepinos/src/enums/estado_campania.dart';
 import 'package:pepinos/src/models/campanias_model.dart';
 import 'package:pepinos/src/models/paginacion_model.dart';
 import 'package:pepinos/src/providers/campanias/campanias_provider.dart';
 import 'package:pepinos/src/widgets/alert_dialog.dart';
+import 'package:pepinos/src/widgets/dismissible_background.dart';
 import 'package:pepinos/src/widgets/drawer_menu.dart';
 import 'package:pepinos/src/widgets/infinite_list_view.dart';
 
@@ -24,7 +26,7 @@ class _CampaniasListPageState extends State<CampaniasListPage> {
   bool _hasInitialError = false;
   bool _hasErrorAfterFetching = false;
   bool _isDeleting = false;
-  StateSetter stateModal;
+  StateSetter _stateModal;
 
   @override
   void initState() {
@@ -114,95 +116,85 @@ class _CampaniasListPageState extends State<CampaniasListPage> {
   Widget _createItem(Campania campania) {
     final start = campania.fechaInicio;
     final end = campania.fechaFin ?? '';
-    return Container(
-      child: Column(
-        children: <Widget>[
-          ListTile(
-            title: Text(campania.nombreCampania),
-            subtitle: Text('${start + ' - ' + end}'),
-            trailing: Icon(
-              Icons.keyboard_arrow_right,
-              color: Colors.green,
-            ),
-            onTap: () => navigateWithNamedAndArguments(
-              context: context,
-              route: 'campanias/form',
-              id: campania.idCampania.toString(),
-            ),
-            onLongPress: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (contextModalBottom) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      ListTile(
-                        leading: new Icon(Icons.delete),
-                        title: new Text('Eliminar'),
-                        onTap: () async {
-                          final response = await showDialog(
-                            context: context,
-                            builder: (contextDialog) {
-                              return StatefulBuilder(
-                                  builder: (context, StateSetter setState) {
-                                stateModal = setState;
-                                return AlertDialog(
-                                  title: Text('Eliminar campaña'),
-                                  content: RichText(
-                                    text: TextSpan(
-                                      style: TextStyle(
-                                          color: Colors.black, fontSize: 16.0),
-                                      children: <TextSpan>[
-                                        TextSpan(
-                                            text:
-                                                'Todo lo relacionado con la campaña'),
-                                        TextSpan(
-                                            text:
-                                                ' ${campania.nombreCampania} ',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
-                                        TextSpan(text: 'se borrara.')
-                                      ],
-                                    ),
-                                  ),
-                                  actions: <Widget>[
-                                    ElevatedButton(
-                                      style: ButtonStyle(
-                                        backgroundColor:
-                                            MaterialStateProperty.all<Color>(
-                                                _isDeleting
-                                                    ? Colors.grey
-                                                    : Colors.red),
-                                      ),
-                                      onPressed: _isDeleting
-                                          ? null
-                                          : () => onDelete(campania),
-                                      child: Text(
-                                        '${_isDeleting ? 'Eliminando' : 'Entiendo lo que hago.'}',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    )
-                                  ],
-                                );
-                              });
-                            },
-                          );
+    Color color = campania.idEstado ==
+            EstadoCampania.getValue(EstadoCampaniaEnum.EN_CURSO)
+        ? Colors.green
+        : Colors.amber;
 
-                          if (response != null && response) {
-                            Navigator.pop(context);
-                          }
-                        },
-                      ),
-                    ],
-                  );
-                },
+    return Dismissible(
+      key: Key(campania.idCampania.toString()),
+      direction: DismissDirection.endToStart,
+      background: DismissibleBackground(
+        color: Colors.redAccent,
+        icon: Icons.delete,
+        text: 'Eliminar',
+      ),
+      confirmDismiss: (direction) async {
+        final bool res = await showDialog(
+          context: context,
+          builder: (BuildContext context) => StatefulBuilder(
+            builder: (context, StateSetter _setState) {
+              _stateModal = _setState;
+              return AlertDialog(
+                content: Text(
+                    "¿Esta seguro de eliminar la campaña ${campania.nombreCampania}?"),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text(
+                      "Cancelar",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            _isDeleting ? Colors.grey : Colors.redAccent)),
+                    child: Text(
+                      "${_isDeleting ? 'Eliminando' : 'Eliminar campaña'}",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: _isDeleting ? null : () => onDelete(campania),
+                  ),
+                ],
               );
             },
           ),
-          Divider(
-              // height: 0,
-              )
-        ],
+        );
+        return res;
+      },
+      child: Container(
+        child: Column(
+          children: <Widget>[
+            ListTile(
+              leading: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Icon(
+                    Icons.circle,
+                    color: color,
+                  ),
+                ],
+              ),
+              title: Text(campania.nombreCampania),
+              subtitle: Text('${start + ' - ' + end}'),
+              trailing: Icon(
+                Icons.keyboard_arrow_right,
+                color: Colors.green,
+              ),
+              onTap: () => navigateWithNamedAndArguments(
+                context: context,
+                route: 'campanias/form',
+                id: campania.idCampania.toString(),
+              ),
+            ),
+            Divider(
+              height: 0,
+            )
+          ],
+        ),
       ),
     );
   }
@@ -216,13 +208,12 @@ class _CampaniasListPageState extends State<CampaniasListPage> {
   onDelete(Campania campania) async {
     _isDeleting = true;
     setState(() {});
-    stateModal(() {});
+    _stateModal(() {});
     try {
       final message =
           await _campaniasProvider.deleteCampania(campania.idCampania);
       final index = _campanias
           .indexWhere((element) => element.idCampania == campania.idCampania);
-      _campanias.removeAt(index);
       _customAlertDialog.confirmAlert(
         context: context,
         title: 'Eliminación exitosa',
@@ -230,11 +221,12 @@ class _CampaniasListPageState extends State<CampaniasListPage> {
         text: 'Aceptar',
         backFunction: () {
           Navigator.pop(context, true);
+          _removeItem(index);
         },
       );
       _isDeleting = false;
       setState(() {});
-      stateModal(() {});
+      _stateModal(() {});
     } catch (e) {
       _customAlertDialog.errorAlert(
         context: context,
@@ -244,7 +236,12 @@ class _CampaniasListPageState extends State<CampaniasListPage> {
       );
       _isDeleting = false;
       setState(() {});
-      stateModal(() {});
+      _stateModal(() {});
     }
+  }
+
+  void _removeItem(int index) {
+    setState(() {});
+    _campanias.removeAt(index);
   }
 }
