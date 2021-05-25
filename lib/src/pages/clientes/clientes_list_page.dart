@@ -3,6 +3,7 @@ import 'package:pepinos/src/models/cliente_model.dart';
 import 'package:pepinos/src/models/paginacion_model.dart';
 import 'package:pepinos/src/providers/clientes_providers.dart';
 import 'package:pepinos/src/widgets/alert_dialog.dart';
+import 'package:pepinos/src/widgets/dismissible_background.dart';
 import 'package:pepinos/src/widgets/drawer_menu.dart';
 import 'package:pepinos/src/widgets/infinite_list_view.dart';
 
@@ -23,6 +24,7 @@ class _ClientesListPageState extends State<ClientesListPage> {
   List<Cliente> _clientes = [];
   StateSetter stateModal;
   CustomAlertDialog _customAlertDialog = new CustomAlertDialog();
+  StateSetter _stateModal;
 
   @override
   void initState() {
@@ -100,118 +102,98 @@ class _ClientesListPageState extends State<ClientesListPage> {
   }
 
   Widget _createItem(BuildContext context, Cliente cliente) {
-    return Container(
-      child: Column(
-        children: <Widget>[
-          ListTile(
-            title: Text(cliente.nombres + ' ' + cliente.apellidos),
-            subtitle: Text(cliente.lugar),
-            trailing: Icon(
-              Icons.keyboard_arrow_right,
-              color: Colors.green,
-            ),
-            onTap: () => _goClient(
-              'clientes/details',
-              context,
-              cliente.idCliente.toString(),
-            ),
-            onLongPress: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (contextModalBottom) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      ListTile(
-                        leading: new Icon(Icons.delete),
-                        title: new Text('Eliminar'),
-                        onTap: () async {
-                          final response = await showDialog(
-                            context: context,
-                            builder: (contextDialog) {
-                              return StatefulBuilder(
-                                  builder: (context, StateSetter setState) {
-                                stateModal = setState;
-                                return AlertDialog(
-                                  title: Text('Eliminar cliente'),
-                                  content: RichText(
-                                    text: TextSpan(
-                                      style: TextStyle(
-                                          color: Colors.black, fontSize: 16.0),
-                                      children: <TextSpan>[
-                                        TextSpan(
-                                            text:
-                                                'Todo lo relacionado con el cliente'),
-                                        TextSpan(
-                                            text:
-                                                ' ${cliente.nombres} ${cliente.apellidos} ',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold)),
-                                        TextSpan(text: 'se borrara.')
-                                      ],
-                                    ),
-                                  ),
-                                  actions: <Widget>[
-                                    ElevatedButton(
-                                      style: ButtonStyle(
-                                        backgroundColor:
-                                            MaterialStateProperty.all<Color>(
-                                                _isDeleting
-                                                    ? Colors.grey
-                                                    : Colors.red),
-                                      ),
-                                      onPressed: _isDeleting
-                                          ? null
-                                          : () => onDelete(cliente),
-                                      child: Text(
-                                        '${_isDeleting ? 'Eliminando' : 'Entiendo lo que hago.'}',
-                                        style: TextStyle(color: Colors.white),
-                                      ),
-                                    )
-                                  ],
-                                );
-                              });
-                            },
-                          );
-
-                          if (response != null && response) {
-                            Navigator.pop(context);
-                          }
-                        },
-                      ),
-                    ],
-                  );
-                },
+    return Dismissible(
+      key: Key(cliente.idCliente.toString()),
+      direction: DismissDirection.endToStart,
+      background: DismissibleBackground(
+        color: Colors.red,
+        icon: Icons.delete,
+        text: 'Eliminar',
+      ),
+      confirmDismiss: (direction) async {
+        final bool res = await showDialog(
+          context: context,
+          builder: (BuildContext context) => StatefulBuilder(
+            builder: (context, StateSetter _setState) {
+              _stateModal = _setState;
+              return AlertDialog(
+                content: Text(
+                    "¿Esta seguro de eliminar el cliente ${cliente.nombres} ${cliente.apellidos}?"),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text(
+                      "Cancelar",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            _isDeleting ? Colors.grey : Colors.redAccent)),
+                    child: Text(
+                      "${_isDeleting ? 'Anulando' : 'Eliminar cliente'}",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: _isDeleting ? null : () => onDelete(cliente),
+                  ),
+                ],
               );
             },
           ),
-          Divider()
-        ],
+        );
+        return res;
+      },
+      child: Container(
+        child: Column(
+          children: <Widget>[
+            ListTile(
+              title: Text(cliente.nombres + ' ' + cliente.apellidos),
+              subtitle: Text(cliente.lugar),
+              trailing: Icon(
+                Icons.keyboard_arrow_right,
+                color: Colors.green,
+              ),
+              onTap: () => _goClient(
+                'clientes/details',
+                context,
+                cliente.idCliente.toString(),
+              ),
+            ),
+            Divider(
+              height: 0,
+            )
+          ],
+        ),
       ),
     );
   }
 
-  onDelete(Cliente cliente) async {
+  void onDelete(Cliente cliente) async {
     _isDeleting = true;
     setState(() {});
-    stateModal(() {});
+    _stateModal(() {});
     try {
       final message = await _clientProvider.deleteCliente(cliente.idCliente);
       final index = _clientes
           .indexWhere((element) => element.idCliente == cliente.idCliente);
-      _clientes.removeAt(index);
+      _isDeleting = false;
+
       _customAlertDialog.confirmAlert(
         context: context,
         title: 'Eliminación exitosa',
         description: message,
         text: 'Aceptar',
         backFunction: () {
-          Navigator.pop(context, true);
+          Navigator.pop(context);
+          _removeItem(index);
         },
       );
-      _isDeleting = false;
+
       setState(() {});
-      stateModal(() {});
+      _stateModal(() {});
     } catch (e) {
       _customAlertDialog.errorAlert(
         context: context,
@@ -221,8 +203,13 @@ class _ClientesListPageState extends State<ClientesListPage> {
       );
       _isDeleting = false;
       setState(() {});
-      stateModal(() {});
+      _stateModal(() {});
     }
+  }
+
+  void _removeItem(int index) {
+    setState(() {});
+    _clientes.removeAt(index);
   }
 }
 
