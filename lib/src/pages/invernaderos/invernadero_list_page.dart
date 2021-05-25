@@ -151,7 +151,8 @@ class _InvernaderoListPageState extends State<InvernaderoListPage> {
           children: <Widget>[
             ListTile(
               title: Text(invernadero.nombreInvernadero),
-              subtitle: Text('Productos asociados: 0'),
+              subtitle: Text(
+                  'Productos asociados: ${invernadero.cantidadProductos ?? 0}'),
               trailing: Icon(
                 Icons.keyboard_arrow_right,
                 color: Colors.green,
