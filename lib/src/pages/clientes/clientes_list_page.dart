@@ -93,7 +93,7 @@ class _ClientesListPageState extends State<ClientesListPage> {
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () => _goClient(context, null),
+        onPressed: () => _goClient('clientes/form', context, null),
       ),
       drawer: DrawerMenu(),
     );
@@ -111,6 +111,7 @@ class _ClientesListPageState extends State<ClientesListPage> {
               color: Colors.green,
             ),
             onTap: () => _goClient(
+              'clientes/details',
               context,
               cliente.idCliente.toString(),
             ),
@@ -225,7 +226,7 @@ class _ClientesListPageState extends State<ClientesListPage> {
   }
 }
 
-void _goClient(BuildContext context, String idCliente) {
-  Navigator.pushNamed(context, 'clientes/form',
+void _goClient(String route, BuildContext context, String idCliente) {
+  Navigator.pushNamed(context, route,
       arguments: idCliente == null || idCliente.isEmpty ? null : idCliente);
 }
