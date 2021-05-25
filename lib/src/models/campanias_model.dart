@@ -64,7 +64,7 @@ class CampaniaFilter {
 
   CampaniaFilter({
     this.pagina = 1,
-    this.filas = 10,
+    this.filas = 12,
   });
 
   factory CampaniaFilter.fromJson(Map<String, dynamic> json) => CampaniaFilter(
