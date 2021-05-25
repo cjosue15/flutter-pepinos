@@ -18,11 +18,13 @@ class Invernadero {
       this.nombreInvernadero,
       this.idEstado,
       this.productosSeleccionados,
-      this.productosNoSeleccionados});
+      this.productosNoSeleccionados,
+      this.cantidadProductos});
 
   int idInvernadero;
   String nombreInvernadero;
   int idEstado;
+  int cantidadProductos;
   List<int> productosSeleccionados;
   List<int> productosNoSeleccionados;
   List<Invernadero> items = [];
@@ -39,6 +41,7 @@ class Invernadero {
         idInvernadero: json["id_invernadero"],
         nombreInvernadero: json["nombre_invernadero"],
         idEstado: json["id_estado"],
+        cantidadProductos: json['cantidad_productos'],
         productosSeleccionados:
             json.containsKey("productos") && json["productos"].length > 0
                 ? List<int>.from(
