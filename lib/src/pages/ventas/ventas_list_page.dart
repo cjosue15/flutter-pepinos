@@ -8,6 +8,7 @@ import 'package:pepinos/src/providers/ventas/ventas_provider.dart';
 import 'package:pepinos/src/utils/date_format.dart';
 import 'package:pepinos/src/widgets/alert_dialog.dart';
 import 'package:pepinos/src/widgets/date_range_picker.dart';
+import 'package:pepinos/src/widgets/dismissible_background.dart';
 import 'package:pepinos/src/widgets/drawer_menu.dart';
 import 'package:pepinos/src/utils/number_format.dart';
 import 'package:pepinos/src/widgets/dropdown.dart';
@@ -311,14 +312,12 @@ class _VentasPageState extends State<VentasPage> {
 
     return Dismissible(
       key: Key(venta.numeroComprobante),
-      onDismissed: (direcction) {
-        final index = _ventas.indexWhere(
-            (element) => element.numeroComprobante == venta.numeroComprobante);
-        _ventas.removeAt(index);
-        setState(() {});
-      },
       direction: DismissDirection.endToStart,
-      background: slideLeftBackground(),
+      background: DismissibleBackground(
+        color: Colors.redAccent,
+        icon: Icons.delete,
+        text: 'Anular',
+      ),
       confirmDismiss: (direction) async {
         if (venta.idEstado == Estado.getValue(EstadoEnum.ANULADO)) return false;
         final bool res = await showDialog(
@@ -409,14 +408,14 @@ class _VentasPageState extends State<VentasPage> {
 
   void onDelete(Venta venta) async {
     _isDeleting = true;
-    setState(() {});
-    _stateModal(() {});
+    if (mounted) {
+      setState(() {});
+      _stateModal(() {});
+    }
     try {
       final msg = await _ventasProvider.cancelVenta(venta.numeroComprobante);
       final index = _ventas.indexWhere(
           (element) => element.numeroComprobante == venta.numeroComprobante);
-      venta.idEstado = 13;
-      _ventas[index] = venta;
       _isDeleting = false;
 
       _customAlertDialog.confirmAlert(
@@ -426,11 +425,14 @@ class _VentasPageState extends State<VentasPage> {
         text: 'Aceptar',
         backFunction: () {
           Navigator.pop(context);
+          _removeItem(index);
         },
       );
 
-      setState(() {});
-      _stateModal(() {});
+      if (mounted) {
+        setState(() {});
+        _stateModal(() {});
+      }
     } catch (e) {
       _customAlertDialog.errorAlert(
         context: context,
@@ -439,38 +441,16 @@ class _VentasPageState extends State<VentasPage> {
         text: 'Aceptar',
       );
       _isDeleting = false;
-      setState(() {});
-      _stateModal(() {});
+      if (mounted) {
+        setState(() {});
+        _stateModal(() {});
+      }
     }
   }
 
-  Widget slideLeftBackground() {
-    return Container(
-      color: Colors.redAccent,
-      child: Align(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            Icon(
-              Icons.delete,
-              color: Colors.white,
-            ),
-            Text(
-              " Anular",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-              textAlign: TextAlign.right,
-            ),
-            SizedBox(
-              width: 20,
-            ),
-          ],
-        ),
-        alignment: Alignment.centerRight,
-      ),
-    );
+  void _removeItem(int index) {
+    _ventas.removeAt(index);
+    setState(() {});
   }
 
   void _resetFilters() {
