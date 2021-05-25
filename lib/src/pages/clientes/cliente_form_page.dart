@@ -58,7 +58,6 @@ class _ClienteFormPageState extends State<ClienteFormPage> {
 
   @override
   void dispose() {
-    print('chau');
     super.dispose();
   }
 
