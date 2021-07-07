@@ -218,7 +218,7 @@ class _VentasPageState extends State<VentasPage> {
                                     ),
                                     ModalFilter.modalItemWithMarginBottom(
                                       child: AppDropdownInput<DropdownItem>(
-                                        hintText: 'Camapaña',
+                                        hintText: 'Campaña',
                                         options: campanias,
                                         value: _campaniaSelected,
                                         onChanged: (campania) {
