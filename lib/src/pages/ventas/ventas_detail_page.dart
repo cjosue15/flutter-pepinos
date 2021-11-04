@@ -382,10 +382,10 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
               Row(
                 children: <Widget>[
                   Text(
-                    'Precio: ',
+                    'Cantidad: ',
                     style: textStyle,
                   ),
-                  Text('S/ ${item.precioUnitario.toStringDouble(2)}')
+                  Text(item.cantidad.toString())
                 ],
               ),
               SizedBox(
@@ -394,10 +394,10 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
               Row(
                 children: <Widget>[
                   Text(
-                    'Cantidad: ',
+                    'Precio: ',
                     style: textStyle,
                   ),
-                  Text(item.cantidad.toString())
+                  Text('S/ ${item.precioUnitario.toStringDouble(2)}')
                 ],
               ),
               SizedBox(
