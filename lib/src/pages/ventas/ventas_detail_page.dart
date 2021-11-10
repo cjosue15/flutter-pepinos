@@ -8,6 +8,7 @@ import 'package:pepinos/src/utils/utils_validatos.dart' as validators;
 import 'package:pepinos/src/utils/number_format.dart';
 import 'package:pepinos/src/widgets/alert_dialog.dart';
 import 'package:pepinos/src/widgets/date_picker_form.dart';
+import 'package:share/share.dart';
 
 class VentasDetailPage extends StatefulWidget {
   @override
@@ -26,6 +27,9 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
   bool _isFetching = false;
   DateTime _dateSelected = DateTime.now();
   VentaPago _ventaPago = new VentaPago();
+  List<String> _options = [
+    'Compartir informe',
+  ];
 
   final _montoController = MoneyMaskedTextController(
     decimalSeparator: '.',
@@ -87,6 +91,28 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(_venta?.numeroComprobante ?? ''),
+          actions: [
+            PopupMenuButton<String>(
+              // child: IconButton(
+              //   icon: Icon(Icons.more_vert),
+              //   // onPressed: () {},
+              // ),
+              // offset: Offset(0, 0),
+              onSelected: choiceOption,
+              // onCanceled: () {
+              //   print('cancelled!');
+              // },
+              icon: Icon(Icons.more_vert),
+              itemBuilder: (context) {
+                return _options.map((String option) {
+                  return PopupMenuItem<String>(
+                    value: option,
+                    child: Text(option),
+                  );
+                }).toList();
+              },
+            ),
+          ],
         ),
         body: isLoading || _venta == null
             ? Center(
@@ -671,5 +697,31 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
     if (monto > montoFaltante.toPrecision(2)) {
       _montoController.updateValue(0);
     }
+  }
+
+  void choiceOption(String option) {
+    String itemsText = '';
+    String itemsLabel =
+        '---------------------------- Items ----------------------------';
+    String totalLabel =
+        '---------------------------- Total ----------------------------';
+    for (var i = 0; i < _items.length; i++) {
+      final name = _items[i].nombreProducto;
+      final cantidad = _items[i].cantidad;
+      final precio = _items[i].precioUnitario;
+      final tipo = _items[i].unidadMedida;
+      itemsText +=
+          '$name - $tipo : ${cantidad.toString().padLeft(2, '0')} x ${precio.toPrecision(2)} = ${(cantidad * precio).toPrecision(2)}\n';
+    }
+
+    Share.share("""Cliente:  ${_venta.cliente}
+Fecha  :  ${_venta.fechaVenta}
+
+$itemsLabel
+
+$itemsText
+$totalLabel
+
+                                                            ${_venta.montoTotal.toPrecision(2)}""");
   }
 }
