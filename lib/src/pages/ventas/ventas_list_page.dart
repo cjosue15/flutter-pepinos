@@ -310,6 +310,11 @@ class _VentasPageState extends State<VentasPage> {
             ? Colors.amber
             : Colors.red;
 
+    bool isPendigState =
+        venta.idEstado == Estado.getValue(EstadoEnum.PENDIENTE);
+
+    print(venta.montoPagado);
+
     return Dismissible(
       key: Key(venta.numeroComprobante),
       direction: DismissDirection.endToStart,
@@ -380,7 +385,9 @@ class _VentasPageState extends State<VentasPage> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    'S/ ${venta.montoTotal.toStringDouble(2)}',
+                    isPendigState
+                        ? 'S/ ${(venta.montoTotal - venta.montoPagado).toStringDouble(2)}'
+                        : 'S/ ${venta.montoTotal.toStringDouble(2)}',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   )
                 ],
