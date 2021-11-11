@@ -722,6 +722,6 @@ $itemsLabel
 $itemsText
 $totalLabel
 
-                                                            ${_venta.montoTotal.toPrecision(2)}""");
+${_venta.montoTotal.toPrecision(2)}""");
   }
 }
