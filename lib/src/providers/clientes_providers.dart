@@ -101,4 +101,27 @@ class ClienteProvider {
       return e;
     }
   }
+
+  Future downloadReportByClient(String id) async {
+    try {
+      Response response = await dio.get(
+        '$apiUrl/api/clientes/excel/$id',
+        //Received data with List<int>
+        options: Options(
+            responseType: ResponseType.bytes,
+            followRedirects: false,
+            validateStatus: (status) {
+              return status < 500;
+            }),
+      );
+      final name = response.headers.value('filename');
+      File file = File('/storage/emulated/0/Download/$name');
+      var raf = file.openSync(mode: FileMode.write);
+      raf.writeFromSync(response.data);
+      await raf.close();
+    } catch (e) {
+      print(e);
+      return e;
+    }
+  }
 }
