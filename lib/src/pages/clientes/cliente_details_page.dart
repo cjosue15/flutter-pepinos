@@ -5,6 +5,7 @@ import 'package:pepinos/src/models/venta_model.dart';
 import 'package:pepinos/src/providers/clientes_providers.dart';
 import 'package:pepinos/src/utils/number_format.dart';
 import 'package:pepinos/src/widgets/screens/error_screen.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ClienteDetailsPage extends StatefulWidget {
   ClienteDetailsPage({Key key}) : super(key: key);
@@ -15,9 +16,7 @@ class ClienteDetailsPage extends StatefulWidget {
 
 class _ClienteDetailsPageState extends State<ClienteDetailsPage> {
   List<String> _options = [
-    'Reporte anual',
-    'Reporte de productos',
-    'Exportar excel',
+    'Reporte de ventas',
   ];
   List<Venta> _ventas = [];
   ClienteReporteTotal _totales;
@@ -93,26 +92,33 @@ class _ClienteDetailsPageState extends State<ClienteDetailsPage> {
                         arguments: _idCliente);
                   },
                 ),
-                PopupMenuButton<String>(
-                  // child: IconButton(
-                  //   icon: Icon(Icons.more_vert),
-                  //   // onPressed: () {},
-                  // ),
-                  // offset: Offset(0, 0),
-                  onSelected: choiceOption,
-                  // onCanceled: () {
-                  //   print('cancelled!');
-                  // },
-                  icon: Icon(Icons.more_vert),
-                  itemBuilder: (context) {
-                    return _options.map((String option) {
-                      return PopupMenuItem<String>(
-                        value: option,
-                        child: Text(option),
-                      );
-                    }).toList();
-                  },
-                ),
+                Builder(builder: (context) {
+                  return PopupMenuButton<String>(
+                    onSelected: (data) async {
+                      if (await Permission.storage.request().isGranted) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text("Descargando..."),
+                        ));
+                        await _clienteProvider
+                            .downloadReportByClient(_idCliente);
+
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          backgroundColor: Colors.green,
+                          content: Text("¡Descargado!"),
+                        ));
+                      }
+                    },
+                    icon: Icon(Icons.more_vert),
+                    itemBuilder: (context) {
+                      return _options.map((String option) {
+                        return PopupMenuItem<String>(
+                          value: option,
+                          child: Text(option),
+                        );
+                      }).toList();
+                    },
+                  );
+                }),
               ],
             ),
             body: _isLoading || _cliente == null
@@ -220,6 +226,10 @@ class _ClienteDetailsPageState extends State<ClienteDetailsPage> {
                     ],
                   ),
           );
+  }
+
+  void choiceOption(String option) async {
+    print(option);
   }
 
   Widget _createMonthPicker() {
@@ -505,9 +515,6 @@ class _ClienteDetailsPageState extends State<ClienteDetailsPage> {
   //   setState(() {});
   // }
 
-  void choiceOption(String option) {
-    print(option);
-  }
 }
 
 extension StringExtension on String {
