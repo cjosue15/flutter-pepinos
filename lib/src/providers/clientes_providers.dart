@@ -102,10 +102,10 @@ class ClienteProvider {
     }
   }
 
-  Future downloadReportByClient(String id) async {
+  Future downloadReportByClient() async {
     try {
       Response response = await dio.get(
-        '$apiUrl/api/clientes/excel/$id',
+        '$apiUrl/api/clientes/excelReport',
         //Received data with List<int>
         options: Options(
             responseType: ResponseType.bytes,

@@ -99,8 +99,7 @@ class _ClienteDetailsPageState extends State<ClienteDetailsPage> {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           content: Text("Descargando..."),
                         ));
-                        await _clienteProvider
-                            .downloadReportByClient(_idCliente);
+                        await _clienteProvider.downloadReportByClient();
 
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                           backgroundColor: Colors.green,
