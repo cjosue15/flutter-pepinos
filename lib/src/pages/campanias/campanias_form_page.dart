@@ -111,9 +111,9 @@ class _CampaniaFormPageState extends State<CampaniaFormPage> {
         border: OutlineInputBorder(),
       ),
       enabled: _campania.idEstado ==
-              EstadoCampania.getValue(EstadoCampaniaEnum.EN_CURSO)
-          ? true
-          : false,
+              EstadoCampania.getValue(EstadoCampaniaEnum.TERMINADO)
+          ? false
+          : true,
       onSaved: (value) => _campania.nombreCampania = value,
       onChanged: (value) => _campania.nombreCampania = value,
       validator: (value) => validators.isTextEmpty(
@@ -124,9 +124,9 @@ class _CampaniaFormPageState extends State<CampaniaFormPage> {
   Widget _createStartDate() {
     return DatePickerForm(
       enabled: _campania.idEstado ==
-              EstadoCampania.getValue(EstadoCampaniaEnum.EN_CURSO)
-          ? true
-          : false,
+              EstadoCampania.getValue(EstadoCampaniaEnum.TERMINADO)
+          ? false
+          : true,
       labelText: 'Fecha de inicio',
       initialDate: _campania.fechaInicio != null
           ? dateStringToDateTime(date: _campania.fechaInicio)
