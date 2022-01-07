@@ -554,88 +554,91 @@ class _VentasDetailPageState extends State<VentasDetailPage> {
       ),
       builder: (BuildContext context) {
         return Padding(
-          padding: const EdgeInsets.all(30.0),
-          child: Form(
-            key: _formKey,
-            child: Wrap(
-              children: <Widget>[
-                Container(
-                  margin: EdgeInsets.only(bottom: 20.0),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Monto faltante S/ ${(_venta.montoTotal - _venta.montoPagado).toStringDouble(2)}',
-                      style: TextStyle(fontWeight: FontWeight.w700),
+          padding: MediaQuery.of(context).viewInsets,
+          child: Padding(
+            padding: const EdgeInsets.all(30.0),
+            child: Form(
+              key: _formKey,
+              child: Wrap(
+                children: <Widget>[
+                  Container(
+                    margin: EdgeInsets.only(bottom: 20.0),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Monto faltante S/ ${(_venta.montoTotal - _venta.montoPagado).toStringDouble(2)}',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  margin: EdgeInsets.only(bottom: 20.0),
-                  child: DatePickerForm(
-                    initialDate: _dateSelected,
-                    labelText: 'Fecha',
-                    onSaved: (String value) => _ventaPago.fechaPago = value,
-                    onDateChanged: (value) {
-                      setState(() {
-                        _ventaPago.fechaPago = value;
-                      });
-                    },
-                  ),
-                ),
-                Container(
-                  margin: EdgeInsets.only(bottom: 20.0),
-                  child: TextFormField(
-                    initialValue: _ventaPago.detallePago,
-                    decoration: InputDecoration(
-                      labelText: 'Descripción',
-                      border: OutlineInputBorder(),
+                  Container(
+                    margin: EdgeInsets.only(bottom: 20.0),
+                    child: DatePickerForm(
+                      initialDate: _dateSelected,
+                      labelText: 'Fecha',
+                      onSaved: (String value) => _ventaPago.fechaPago = value,
+                      onDateChanged: (value) {
+                        setState(() {
+                          _ventaPago.fechaPago = value;
+                        });
+                      },
                     ),
-                    onSaved: (value) => _ventaPago.detallePago = value,
-                    onChanged: (String value) {
-                      setState(() {
-                        _ventaPago.detallePago = value;
-                      });
-                    },
-                    validator: (value) => validators.isTextEmpty(
-                        length: 1,
-                        message: 'Ingrese una descripción.',
-                        value: value),
                   ),
-                ),
-                Container(
-                  margin: EdgeInsets.only(bottom: 20.0),
-                  child: TextFormField(
-                    controller: _montoController,
-                    keyboardType:
-                        TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: 'Monto',
-                      border: OutlineInputBorder(),
+                  Container(
+                    margin: EdgeInsets.only(bottom: 20.0),
+                    child: TextFormField(
+                      initialValue: _ventaPago.detallePago,
+                      decoration: InputDecoration(
+                        labelText: 'Descripción',
+                        border: OutlineInputBorder(),
+                      ),
+                      onSaved: (value) => _ventaPago.detallePago = value,
+                      onChanged: (String value) {
+                        setState(() {
+                          _ventaPago.detallePago = value;
+                        });
+                      },
+                      validator: (value) => validators.isTextEmpty(
+                          length: 1,
+                          message: 'Ingrese una descripción.',
+                          value: value),
                     ),
-                    onSaved: (value) =>
-                        _ventaPago.montoPagado = _montoController.numberValue,
-                    onChanged: (String value) {
-                      setState(() {
-                        _ventaPago.montoPagado = _montoController.numberValue;
-                      });
-                    },
-                    validator: (value) => validators.isPriceGreaterThanZero(
-                        message: 'Ingrese un monto mayor a S/ 0.00.',
-                        value: _montoController.numberValue.toString()),
                   ),
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (!_formKey.currentState.validate()) return;
-                      _formKey.currentState.save();
-                      Navigator.pop(context, true);
-                    },
-                    child: Text('Aceptar'),
+                  Container(
+                    margin: EdgeInsets.only(bottom: 20.0),
+                    child: TextFormField(
+                      controller: _montoController,
+                      keyboardType:
+                          TextInputType.numberWithOptions(decimal: true),
+                      decoration: InputDecoration(
+                        labelText: 'Monto',
+                        border: OutlineInputBorder(),
+                      ),
+                      onSaved: (value) =>
+                          _ventaPago.montoPagado = _montoController.numberValue,
+                      onChanged: (String value) {
+                        setState(() {
+                          _ventaPago.montoPagado = _montoController.numberValue;
+                        });
+                      },
+                      validator: (value) => validators.isPriceGreaterThanZero(
+                          message: 'Ingrese un monto mayor a S/ 0.00.',
+                          value: _montoController.numberValue.toString()),
+                    ),
                   ),
-                )
-              ],
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (!_formKey.currentState.validate()) return;
+                        _formKey.currentState.save();
+                        Navigator.pop(context, true);
+                      },
+                      child: Text('Aceptar'),
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         );
