@@ -313,8 +313,6 @@ class _VentasPageState extends State<VentasPage> {
     bool isPendigState =
         venta.idEstado == Estado.getValue(EstadoEnum.PENDIENTE);
 
-    print(venta.montoPagado);
-
     return Dismissible(
       key: Key(venta.numeroComprobante),
       direction: DismissDirection.endToStart,

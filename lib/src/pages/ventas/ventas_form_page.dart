@@ -166,7 +166,6 @@ class _VentasFormState extends State<VentasForm> {
                               subtitle: Text(_items[index].nombreInvernadero),
                               leading: IconButton(
                                 onPressed: () {
-                                  print(_items[index]);
                                   _items.removeWhere((venta) =>
                                       _items[index].idItem == venta.idItem);
                                   setState(() {});
@@ -648,7 +647,6 @@ class _VentasFormState extends State<VentasForm> {
       setState(() {
         _isSaving = false;
       });
-      // print(ventaToJson(_venta));
     } catch (e) {
       _customAlertDialog.errorAlert(
         context: context,
