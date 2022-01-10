@@ -90,9 +90,9 @@ class _CampaniaFormPageState extends State<CampaniaFormPage> {
                           SizedBox(height: 30.0),
                           _campania.idEstado ==
                                   EstadoCampania.getValue(
-                                      EstadoCampaniaEnum.EN_CURSO)
-                              ? _createButton(context)
-                              : Container()
+                                      EstadoCampaniaEnum.TERMINADO)
+                              ? Container()
+                              : _createButton(context)
                         ],
                       ),
                     ),
