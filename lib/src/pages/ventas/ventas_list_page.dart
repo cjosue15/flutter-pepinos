@@ -371,26 +371,39 @@ class _VentasPageState extends State<VentasPage> {
                   ),
                 ],
               ),
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              title: Padding(
+                padding: const EdgeInsets.symmetric(),
+                child: Column(
+                  children: [
+                    Padding(padding: EdgeInsets.all(5.0)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${venta.cliente}',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          isPendigState
+                              ? 'S/ ${(venta.montoTotal - venta.montoPagado).toStringDouble(2)}'
+                              : 'S/ ${venta.montoTotal.toStringDouble(2)}',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Text(
-                  //   'Boleta ${venta.numeroComprobante}',
-                  //   style: TextStyle(fontWeight: FontWeight.bold),
-                  // ),
-                  Text(
-                    '${venta.cliente}',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    isPendigState
-                        ? 'S/ ${(venta.montoTotal - venta.montoPagado).toStringDouble(2)}'
-                        : 'S/ ${venta.montoTotal.toStringDouble(2)}',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  )
+                  Padding(padding: EdgeInsets.all(5.0)),
+                  Text('${venta.numeroComprobante}  ${venta.estado}'),
+                  Padding(padding: EdgeInsets.all(5.0)),
+                  Text('Fecha: ${venta.fechaVenta}'),
+                  Padding(padding: EdgeInsets.all(5.0)),
                 ],
               ),
-              subtitle: Text('${venta.numeroComprobante}  ${venta.estado}'),
               onTap: () => _goVenta(context, venta.numeroComprobante),
               trailing: Icon(
                 venta.idEstado == Estado.getValue(EstadoEnum.PENDIENTE) ||
